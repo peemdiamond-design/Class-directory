@@ -75,8 +75,8 @@
             background-color: #d1d1c8;
             border-radius: 4px;
             object-fit: cover;
-            width: 120px;
-            height: 120px;
+            width: 150px;
+            height: 150px;
         }
         .keycap:hover .profile-img {
             filter: grayscale(20%) contrast(110%);
@@ -137,10 +137,10 @@
     </nav>
 
     <!-- Main Container -->
-    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-center">
+    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-start">
 
         <!-- 1. AUTHENTICATION VIEW -->
-        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)]">
+        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10">
             <div class="flex justify-center mb-6">
                 <img src="/assets/images.png" style="width: 120px; mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
             </div>
@@ -175,9 +175,10 @@
         <!-- 2. DIRECTORY VIEW -->
         <div id="directory-view" class="w-full max-w-6xl hidden">
             <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 relative overflow-hidden">
+                <img src="/assets/images.png" style="width: 150px; mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain absolute opacity-20 right-10 top-2 z-0">
                 <div class="text-center z-10">
-                    <h1 class="text-3xl md:text-4xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
-                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น (Firestore Data)</h2>
+                    <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
+                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
                 </div>
             </header>
 
@@ -189,55 +190,100 @@
         </div>
 
         <!-- 3. ADMIN PANEL VIEW -->
-        <div id="admin-view" class="w-full max-w-4xl hidden">
+        <div id="admin-view" class="w-full max-w-6xl hidden">
             <div class="bg-[#dfdfd5] p-6 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-lg mb-8">
                 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
                     <span class="bg-red-600 w-3 h-3 rounded-full inline-block"></span> ADMIN CONTROL PANEL
                 </h2>
                 
                 <div class="bg-[#cbcbbf] p-4 rounded shadow-inner border border-gray-400 mb-6">
-                    <h3 class="font-bold mb-3 thai-text">เพิ่มสมาชิก / จัดการตำแหน่ง</h3>
-                    <form id="admin-form" onsubmit="saveMemberManual(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 thai-text">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">รหัสนักศึกษา (10 หลัก)</label>
-                            <input type="text" id="member-id" required pattern="[0-9]{10}" class="w-full p-2 rounded border border-gray-400 font-mono text-sm" placeholder="เช่น 6910616249">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">ชื่อ-นามสกุล</label>
-                            <input type="text" id="member-name" required class="w-full p-2 rounded border border-gray-400 text-sm" placeholder="สมชาย ใจดี">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1">ตำแหน่ง</label>
-                            <select id="member-position" required class="w-full p-2 rounded border border-gray-400 text-sm bg-white">
-                                <option value="ประธานรุ่น">ประธานรุ่น</option>
-                                <option value="รองประธาน">รองประธาน</option>
-                                <option value="สมาชิก" selected>สมาชิก</option>
-                            </select>
-                        </div>
-                        <div class="flex items-end gap-2">
-                            <button type="submit" class="keycap w-full py-2 text-sm font-bold !w-full !m-0 bg-gradient-to-b from-green-200 to-green-400 border-green-600">SAVE_</button>
-                        </div>
-                    </form>
-
                     <!-- CSV Import Section -->
-                    <div class="mt-6 pt-4 border-t border-gray-400">
+                    <div class="pb-4 border-b border-gray-400 mb-6">
                         <h4 class="font-bold mb-2 thai-text text-sm flex items-center gap-2">
                             <span class="bg-blue-600 w-2 h-2 rounded-full inline-block"></span>
                             อัปโหลดข้อมูลจากไฟล์ CSV (Bulk Import)
                         </h4>
                         <div class="flex gap-2 items-center flex-wrap">
                             <input type="file" id="csv-file" accept=".csv" class="border border-gray-400 p-1 text-sm bg-white rounded cursor-pointer">
-                            <button type="button" onclick="importCSV()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0">IMPORT_CSV</button>
+                            <button type="button" onclick="importCSV()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0 bg-green-200">IMPORT_CSV</button>
                         </div>
                         <p class="text-xs text-gray-600 mt-2 thai-text">
-                            ไฟล์ต้องมีคอลัมน์ชื่อ: <span class="font-mono bg-gray-200 px-1 border border-gray-300">รหัสนักศึกษา</span> และ <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อ</span>
+                            หัวคอลัมน์ที่รองรับ: <span class="font-mono bg-gray-200 px-1 border border-gray-300">รหัสนักศึกษา</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อ</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">นามสกุล</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อเล่น</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ID Line</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">Instagram</span>
                         </p>
+                    </div>
+
+                    <!-- Data Table -->
+                    <h3 class="font-bold mb-3 thai-text flex items-center gap-2">
+                        <span class="bg-yellow-500 w-2 h-2 rounded-full inline-block"></span>
+                        จัดการรายชื่อสมาชิก (Database)
+                    </h3>
+                    <div class="overflow-x-auto bg-white border border-gray-400 rounded">
+                        <table class="w-full text-sm text-left text-gray-800 thai-text">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-300 border-b border-gray-400">
+                                <tr>
+                                    <th scope="col" class="px-4 py-3 font-mono">Student ID</th>
+                                    <th scope="col" class="px-4 py-3">ชื่อ-นามสกุล</th>
+                                    <th scope="col" class="px-4 py-3">ตำแหน่ง</th>
+                                    <th scope="col" class="px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-table-body" class="divide-y divide-gray-300">
+                                <!-- Data rows go here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
 
     </main>
+
+    <!-- Modal: Edit User (Admin Only) -->
+    <div id="edit-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-[#dfdfd5] w-full max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6">
+            <button onclick="closeEditModal()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
+            <h3 class="thai-text text-xl font-bold mb-4">แก้ไขข้อมูลสมาชิก</h3>
+            
+            <form id="edit-user-form" onsubmit="saveUserEdit(event)" class="flex flex-col gap-3 thai-text">
+                <input type="hidden" id="edit-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">ชื่อ</label>
+                        <input type="text" id="edit-firstname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">นามสกุล</label>
+                        <input type="text" id="edit-lastname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">ชื่อเล่น</label>
+                        <input type="text" id="edit-nickname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-xs font-bold text-gray-600">ตำแหน่ง</label>
+                        <select id="edit-position" class="w-full p-2 rounded border border-gray-400 text-sm bg-white">
+                            <option value="ประธานรุ่น">ประธานรุ่น</option>
+                            <option value="รองประธาน">รองประธาน</option>
+                            <option value="สมาชิก">สมาชิก</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">ID Line</label>
+                        <input type="text" id="edit-line" class="w-full p-2 rounded border border-gray-400 text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Instagram</label>
+                        <input type="text" id="edit-ig" class="w-full p-2 rounded border border-gray-400 text-sm font-mono">
+                    </div>
+                </div>
+                <button type="submit" id="save-edit-btn" class="keycap w-full py-2 mt-2 text-sm font-bold bg-green-200">SAVE_CHANGES</button>
+            </form>
+        </div>
+    </div>
 
     <!-- Modal: Profile & Status Update -->
     <div id="profile-modal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
@@ -249,12 +295,27 @@
             
             <div class="p-6 border-b-2 border-gray-400 flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-gray-200 to-transparent rounded-t-xl">
                 <img id="modal-img" src="" alt="Profile" class="w-32 h-32 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300 filter grayscale contrast-125">
-                <h3 id="modal-name" class="thai-text text-2xl font-bold text-gray-800 z-10 text-center">Name</h3>
+                <h3 id="modal-name" class="thai-text text-2xl font-bold text-gray-800 z-10 text-center leading-tight">Name</h3>
+                <p id="modal-nickname" class="thai-text text-sm text-gray-600 z-10 mb-1 font-bold">Nickname</p>
                 <p id="modal-id" class="text-md font-mono text-gray-600 z-10 mb-2">ID</p>
+                
                 <div id="modal-position" class="thai-text text-sm bg-gray-800 text-white px-3 py-1 rounded font-bold shadow-inner z-10 tracking-widest uppercase mb-4">POSITION</div>
                 
+                <!-- Social Links -->
+                <div class="flex gap-4 z-10 mb-4 thai-text text-sm bg-white/50 px-4 py-2 rounded border border-gray-300 w-full justify-center">
+                    <div class="flex flex-col items-center">
+                        <span class="font-bold text-xs text-green-700">LINE</span>
+                        <span id="modal-line" class="font-mono text-gray-800">-</span>
+                    </div>
+                    <div class="w-px bg-gray-400"></div>
+                    <div class="flex flex-col items-center">
+                        <span class="font-bold text-xs text-pink-700">IG</span>
+                        <span id="modal-ig" class="font-mono text-gray-800">-</span>
+                    </div>
+                </div>
+
                 <!-- Status Update Form (IG Style LED box, visible to owner) -->
-                <form id="status-form" onsubmit="updateStatus(event)" class="mt-2 w-full px-2 hidden z-10 flex-col items-center">
+                <form id="status-form" onsubmit="updateStatus(event)" class="w-full px-2 hidden z-10 flex-col items-center">
                     <label class="text-[10px] text-gray-500 font-bold mb-1">STATUS (MAX 30 CHARS)</label>
                     <div class="flex gap-2 w-full">
                         <input type="text" id="status-input" maxlength="30" class="flex-grow p-1.5 px-3 text-sm rounded border border-gray-400 font-mono shadow-inner outline-none focus:border-green-600 bg-white" placeholder="อัปเดตสถานะของคุณ...">
@@ -319,6 +380,9 @@
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
+            if(viewId === 'admin-view') {
+                renderAdminTable();
+            }
         }
 
         // ====== AUTHENTICATION LOGIC ======
@@ -340,7 +404,6 @@
             loginBtn.innerText = "PROCESSING...";
             loginBtn.disabled = true;
 
-            // แปลงรหัสนักศึกษาให้เป็น Email ของโดเมนที่กำหนด
             const emailFormat = `${idInput}@dome.tu.ac.th`;
 
             try {
@@ -369,10 +432,8 @@
             signOut(auth);
         }
 
-        // Listener สำหรับตรวจสอบสถานะ Auth
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                // ตัด @dome.tu.ac.th ออกเพื่อให้เหลือแค่รหัสนักศึกษา 10 หลัก
                 const studentId = user.email.split('@')[0]; 
                 currentUser = {
                     uid: user.uid,
@@ -390,7 +451,6 @@
                 switchView('directory-view');
                 document.getElementById('auth-form').reset();
                 
-                // โหลดข้อมูลเมื่อล็อคอินสำเร็จ
                 loadMembersData();
             } else {
                 currentUser = null;
@@ -401,7 +461,6 @@
 
         // ====== FIRESTORE LOGIC ======
 
-        // ฟังก์ชันดึงข้อมูลจาก Firestore เพื่อแสดงแผนผัง
         async function loadMembersData() {
             if (!currentUser) return;
             try {
@@ -412,38 +471,13 @@
                     membersData.push({ ...docSnap.data() });
                 });
                 renderTree();
+                if(!document.getElementById('admin-view').classList.contains('hidden')) {
+                    renderAdminTable();
+                }
             } catch (error) {
                 console.error("Error fetching users:", error);
                 document.getElementById('tree-container').innerHTML = 
                     `<div class="text-red-500 font-bold text-center py-10">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-            }
-        }
-
-        // เพิ่มสมาชิกแบบ Manual (สำหรับแอดมิน)
-        window.saveMemberManual = async function(e) {
-            e.preventDefault();
-            if (!currentUser || !currentUser.isAdmin) return;
-
-            const id = document.getElementById('member-id').value.trim();
-            const name = document.getElementById('member-name').value.trim();
-            const position = document.getElementById('member-position').value;
-
-            try {
-                const userDocRef = doc(db, USERS_PATH, id);
-                await setDoc(userDocRef, {
-                    studentId: id,
-                    name: name,
-                    position: position,
-                    status: '',
-                    updatedAt: new Date().toISOString()
-                }, { merge: true });
-                
-                showAlert("สำเร็จ", `บันทึกข้อมูล ${name} เรียบร้อยแล้ว`);
-                document.getElementById('admin-form').reset();
-                loadMembersData();
-            } catch (error) {
-                console.error("Save error:", error);
-                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
             }
         }
 
@@ -477,13 +511,19 @@
                                 const snap = await getDoc(userDocRef);
                                 
                                 if (!snap.exists()) {
-                                    const nameFirst = row['ชื่อ'] ? String(row['ชื่อ']).trim() : '';
-                                    const nameLast = row['นามสกุล'] ? String(row['นามสกุล']).trim() : '';
-                                    const fullName = (nameFirst + ' ' + nameLast).trim();
+                                    const firstName = row['ชื่อ'] ? String(row['ชื่อ']).trim() : '';
+                                    const lastName = row['นามสกุล'] ? String(row['นามสกุล']).trim() : '';
+                                    const nickname = row['ชื่อเล่น'] ? String(row['ชื่อเล่น']).trim() : '';
+                                    const lineId = row['ID Line'] ? String(row['ID Line']).trim() : '';
+                                    const instagram = row['Instagram'] ? String(row['Instagram']).trim() : '';
 
                                     await setDoc(userDocRef, {
                                         studentId: studentId,
-                                        name: fullName || 'ไม่ระบุชื่อ',
+                                        firstName: firstName,
+                                        lastName: lastName,
+                                        nickname: nickname,
+                                        lineId: lineId,
+                                        instagram: instagram,
                                         position: 'สมาชิก', // ตำแหน่ง Default
                                         status: '',
                                         importedAt: new Date().toISOString()
@@ -505,7 +545,7 @@
                     btn.innerText = "IMPORT_CSV";
                     btn.disabled = false;
                     showAlert("นำเข้าข้อมูลสำเร็จ", `เพิ่มข้อมูลใหม่: ${successCount} รายการ\nข้ามข้อมูล (มีอยู่แล้ว/ผิดรูปแบบ): ${skipCount} รายการ`);
-                    loadMembersData();
+                    loadMembersData(); // Reload all data
                 },
                 error: function(err) {
                     showAlert("ข้อผิดพลาด", "ไม่สามารถอ่านไฟล์ CSV ได้");
@@ -516,6 +556,92 @@
             });
         };
 
+        // ====== ADMIN TABLE & EDITING ======
+        window.renderAdminTable = function() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            
+            if (membersData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center text-gray-500">ยังไม่มีข้อมูลสมาชิก</td></tr>`;
+                return;
+            }
+
+            membersData.forEach(member => {
+                const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-100 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono">${member.studentId}</td>
+                    <td class="px-4 py-3">${fullName || 'ไม่ระบุชื่อ'} ${member.nickname ? `(${member.nickname})` : ''}</td>
+                    <td class="px-4 py-3">${member.position}</td>
+                    <td class="px-4 py-3">
+                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors">EDIT</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.openEditModal = function(studentId) {
+            const member = membersData.find(m => m.studentId === studentId);
+            if (!member) return;
+
+            document.getElementById('edit-id').value = member.studentId;
+            document.getElementById('edit-firstname').value = member.firstName || '';
+            document.getElementById('edit-lastname').value = member.lastName || '';
+            document.getElementById('edit-nickname').value = member.nickname || '';
+            document.getElementById('edit-position').value = member.position || 'สมาชิก';
+            document.getElementById('edit-line').value = member.lineId || '';
+            document.getElementById('edit-ig').value = member.instagram || '';
+
+            document.getElementById('edit-modal').classList.remove('hidden');
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('edit-modal').classList.add('hidden');
+        }
+
+        window.saveUserEdit = async function(e) {
+            e.preventDefault();
+            if (!currentUser || !currentUser.isAdmin) return;
+
+            const studentId = document.getElementById('edit-id').value;
+            const btn = document.getElementById('save-edit-btn');
+            btn.innerText = "...";
+            btn.disabled = true;
+
+            const updateData = {
+                firstName: document.getElementById('edit-firstname').value.trim(),
+                lastName: document.getElementById('edit-lastname').value.trim(),
+                nickname: document.getElementById('edit-nickname').value.trim(),
+                position: document.getElementById('edit-position').value,
+                lineId: document.getElementById('edit-line').value.trim(),
+                instagram: document.getElementById('edit-ig').value.trim()
+            };
+
+            try {
+                const userDocRef = doc(db, USERS_PATH, studentId);
+                await updateDoc(userDocRef, updateData);
+                
+                // Update local data
+                const memberIndex = membersData.findIndex(m => m.studentId === studentId);
+                if (memberIndex !== -1) {
+                    membersData[memberIndex] = { ...membersData[memberIndex], ...updateData };
+                }
+                
+                renderAdminTable();
+                renderTree();
+                closeEditModal();
+                showAlert("สำเร็จ", "อัปเดตข้อมูลสมาชิกเรียบร้อยแล้ว");
+            } catch (error) {
+                console.error("Edit error:", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกการแก้ไขได้");
+            } finally {
+                btn.innerText = "SAVE_CHANGES";
+                btn.disabled = false;
+            }
+        }
+
         // ====== LAYOUT RENDERING ======
         function renderTree() {
             const container = document.getElementById('tree-container');
@@ -525,22 +651,21 @@
                 return;
             }
 
-            // แยกหมวดหมู่ตามตำแหน่ง
             const presidents = membersData.filter(m => m.position === 'ประธานรุ่น');
             const vps = membersData.filter(m => m.position === 'รองประธาน');
             const members = membersData.filter(m => m.position === 'สมาชิก');
 
-            // ใช้ Flex Column ในการจัดเรียงจากบนลงล่าง
+            // ใช้ Flex Column แบบไม่เลื่อนข้าง (Vertical Flow)
             let html = `<div class="flex flex-col items-center gap-10 w-full">`;
             
-            // 1. ระดับประธาน (บนสุด ตรงกลาง)
+            // 1. ระดับประธาน
             if (presidents.length > 0) {
                 html += `<div class="flex justify-center w-full">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
 
-            // 2. ระดับรองประธาน (ถัดลงมา ตรงกลาง)
+            // 2. ระดับรองประธาน
             if (vps.length > 0) {
                 html += `<div class="flex justify-center w-full">
                             ${buildKeycapNode(vps[0], 'normal')}
@@ -549,7 +674,7 @@
 
             // 3. ระดับสมาชิก (กางออกปัดบรรทัด Flex Wrap แนวตั้ง-แนวนอน)
             if (members.length > 0) {
-                html += `<div class="flex flex-wrap justify-center gap-6 w-full">`;
+                html += `<div class="flex flex-wrap justify-center gap-6 w-full max-w-5xl">`;
                 members.forEach(m => {
                     html += buildKeycapNode(m, 'normal');
                 });
@@ -562,14 +687,16 @@
 
         // Component: ปุ่มรายบุคคล
         window.buildKeycapNode = function(member, type = 'normal') {
-            const imgUrl = `/assets/${member.studentId}.png`;
+            // FIX: เปลี่ยนสกุลไฟล์ภาพเป็น .jpeg ตามคำขอ
+            const imgUrl = `/assets/${member.studentId}.jpeg`;
             const isPres = type === 'president';
+            const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
+            const displayName = fullName || member.name || 'ไม่ระบุชื่อ';
             
-            // ขนาดความกว้างแบบคงที่ 250px เพื่อให้อ่านง่ายตามรีเควส
             return `
                 <div class="keycap ${isPres ? 'president' : ''} p-5 flex flex-col items-center w-[250px]" onclick="openProfile('${member.studentId}')">
                     <img src="${imgUrl}" onerror="this.onerror=null; this.src='/assets/images.png';" alt="Profile" class="profile-img mb-3 shadow-inner">
-                    <p class="thai-text text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${member.name}</p>
+                    <p class="thai-text text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${displayName}</p>
                     <div class="w-full mt-2 pt-2 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
                         <p class="thai-text text-xs text-gray-600 font-bold text-center">${member.position}</p>
                     </div>
@@ -586,14 +713,19 @@
             if (!member) return;
 
             currentProfileId = studentId;
+            const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             
-            document.getElementById('modal-name').innerText = member.name;
+            document.getElementById('modal-name').innerText = fullName || member.name || 'ไม่ระบุชื่อ';
+            document.getElementById('modal-nickname').innerText = member.nickname ? `( ${member.nickname} )` : '';
             document.getElementById('modal-id').innerText = member.studentId;
             document.getElementById('modal-position').innerText = member.position;
+            
+            document.getElementById('modal-line').innerText = member.lineId || '-';
+            document.getElementById('modal-ig').innerText = member.instagram || '-';
 
-            // Image Handler
+            // Image Handler (.jpeg)
             const img = document.getElementById('modal-img');
-            img.src = `/assets/${member.studentId}.png`;
+            img.src = `/assets/${member.studentId}.jpeg`;
             img.onerror = () => { img.src = `/assets/images.png`; };
 
             // Control form visibility (เฉพาะเจ้าของโปรไฟล์)
