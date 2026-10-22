@@ -67,7 +67,7 @@
             border-color: #b5b5a6;
         }
 
-        /* รูปโปรไฟล์ Full Color ไม่มี Grayscale */
+        /* รูปโปรไฟล์ Full Color ไม่บล็อกขาวดำ */
         .profile-img {
             border: 2px solid #b5b5a6;
             background-color: #d1d1c8;
@@ -120,11 +120,11 @@
 
     <!-- Navbar -->
     <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
-        <div class="flex items-center gap-2 md:gap-5 cursor-pointer" onclick="switchView('directory-view')">
+        <div class="flex items-center gap-2 md:gap-4 cursor-pointer" onclick="switchView('directory-view')">
             <!-- โลโก้ธรรมศาสตร์ -->
-            <img src="assets/images.png" style="mix-blend-mode: multiply; height: 60px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain md:h-[75px]">
-            <!-- โลโก้ TSE (ขยายขนาดขึ้นมากเพื่อให้สมส่วนกับตราธรรมศาสตร์) -->
-            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 90px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[115px] -ml-2 md:-ml-4">
+            <img src="assets/images.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain h-[50px] md:h-[75px]">
+            <!-- โลโก้ TSE (ขยายขนาดขึ้นเพื่อให้สมส่วนกับตราธรรมศาสตร์) -->
+            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain h-[75px] md:h-[115px] transform scale-125 origin-left ml-1 md:ml-3">
             <span class="font-bold tracking-tighter hidden xl:block text-2xl ml-2">CLASS DIRECTORY CN25</span>
         </div>
         <div class="flex gap-2 sm:gap-4 items-center">
@@ -383,7 +383,7 @@
         // NON-BLOCKING IMAGE FALLBACK LOGIC
         // ==========================================
         window.handleFallbackImg = function(imgElement, studentId, step) {
-            const exts = ['jpeg', 'jpg', 'png', 'webp'];
+            const exts = ['jpeg', 'jpg', 'png', 'webp', 'heic'];
             if (step < exts.length) {
                 imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1); };
                 imgElement.src = `assets/${studentId}.${exts[step]}`;
@@ -592,7 +592,6 @@
                 return;
             }
 
-            // Sort by studentId
             const sortedData = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
 
             sortedData.forEach(member => {
@@ -660,20 +659,19 @@
             const vps = membersData.filter(m => m.position === 'รองประธาน');
             const members = membersData.filter(m => m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน');
 
-            // Sort members by ID
             members.sort((a,b) => a.studentId.localeCompare(b.studentId));
 
-            let html = `<div class="flex flex-col items-center gap-6 md:gap-10 w-full">`;
+            let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full">`;
             
-            // ประธาน
+            // ประธาน (ปรับขนาดให้สมดุลบนมือถือ ไม่ใหญ่จนเกินไป)
             if (presidents.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
+                html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
             // รองประธาน
             if (vps.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
+                html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
@@ -726,7 +724,6 @@
             modalImg.src = `assets/${member.studentId}.jpeg`;
 
             const statusForm = document.getElementById('status-form');
-            // เห็นฟอร์มสเตตัสเฉพาะตอนล็อกอินเป็นตัวเองเท่านั้น
             if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden'); statusForm.classList.add('flex');
                 document.getElementById('status-input').value = member.status || '';
