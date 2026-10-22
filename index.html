@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPE TU Alumni - Directory System</title>
     <!-- โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,6 +31,7 @@
             color: var(--text-color);
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
         }
 
         .thai-text {
@@ -98,7 +101,7 @@
             color: var(--terminal-text);
         }
 
-        /* --- แผนผังต้นไม้ --- */
+        /* --- แผนผังต้นไม้ (Org Tree) --- */
         .org-tree {
             display: flex;
             justify-content: center;
@@ -113,6 +116,7 @@
             display: flex;
             justify-content: center;
             padding-left: 0;
+            flex-wrap: nowrap;
         }
 
         .org-tree li {
@@ -125,6 +129,7 @@
             align-items: center;
         }
 
+        /* การลากเส้นเชื่อมในผังต้นไม้ */
         .org-tree li::before, .org-tree li::after {
             content: '';
             position: absolute;
@@ -145,7 +150,8 @@
         }
         .org-tree li:only-child { padding-top: 0; }
         .org-tree li:first-child::before, .org-tree li:last-child::after { border: 0 none; }
-        .org-tree li:last-child::before { border-right: 3px solid var(--line-color); }
+        .org-tree li:last-child::before { border-right: 3px solid var(--line-color); border-radius: 0 4px 0 0; }
+        .org-tree li:first-child::after { border-radius: 4px 0 0 0; }
         .org-tree ul ul::before {
             content: '';
             position: absolute;
@@ -169,9 +175,10 @@
             backdrop-filter: blur(4px);
         }
         
-        /* Message Scroll Area */
-        .message-board {
-            scrollbar-width: thin;
+        .led-status {
+            background-color: #1a1a1a;
+            color: #4ade80;
+            text-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
         }
     </style>
 </head>
@@ -180,12 +187,12 @@
     <!-- Navbar -->
     <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar" style="display: none;">
         <div class="flex items-center gap-4">
-            <img src="/assets/images.png" alt="TU Logo" class="w-10 h-10 object-contain">
-            <span class="font-bold tracking-tighter hidden sm:block">SYSTEM.EXE</span>
+            <img src="/assets/images.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/d1d1c8/333333?text=TU';" alt="TU Logo" class="w-10 h-10 object-contain">
+            <span class="font-bold tracking-tighter hidden sm:block">TU.ALUMNI.EXE</span>
         </div>
         <div class="flex gap-2 sm:gap-4">
             <button onclick="switchView('directory-view')" class="keycap px-4 py-2 text-sm font-bold">DIRECTORY</button>
-            <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-4 py-2 text-sm font-bold text-red-700 hidden">ADMIN PANEL</button>
+            <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-4 py-2 text-sm font-bold text-red-700 hidden">ADMIN_PANEL</button>
             <button onclick="logout()" class="keycap px-4 py-2 text-sm font-bold text-gray-600">LOGOUT</button>
         </div>
     </nav>
@@ -197,11 +204,11 @@
         <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)]">
             <div class="flex justify-center mb-6">
                 <div class="w-24 h-24 bg-white p-1 rounded-full shadow-inner border-4 border-[#b5b5a6]">
-                    <img src="/assets/images.png" alt="TU Logo" class="w-full h-full object-contain rounded-full">
+                    <img src="/assets/images.png" onerror="this.onerror=null; this.src='https://placehold.co/100x100/d1d1c8/333333?text=TU';" alt="TU Logo" class="w-full h-full object-contain rounded-full">
                 </div>
             </div>
             <h1 class="text-2xl font-bold text-center mb-2">TU ALUMNI LOGIN</h1>
-            <p class="text-center text-sm mb-6 thai-text">กรุณาล็อกอินด้วยรหัสนักศึกษา 10 หลัก<br><span class="text-xs text-gray-500">(ระบบ Google Sheets)</span></p>
+            <p class="text-center text-sm mb-6 thai-text">กรุณาล็อกอินด้วยรหัสนักศึกษา 10 หลัก<br><span class="text-xs text-gray-500">(ระบบฐานข้อมูลส่วนกลาง)</span></p>
             
             <div class="bg-black p-4 rounded-lg shadow-inner mb-6 relative">
                 <div class="absolute top-0 left-0 w-full h-full pointer-events-none rounded-lg" style="background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);"></div>
@@ -233,12 +240,11 @@
             <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 relative overflow-hidden">
                 <div class="text-center z-10">
                     <h1 class="text-3xl md:text-4xl font-bold tracking-tighter text-[#222]">CPE TU ALUMNI</h1>
-                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ผังองค์กรทำเนียบรุ่น (Sheets Data)</h2>
+                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ผังองค์กรทำเนียบรุ่น (Firestore Data)</h2>
                 </div>
             </header>
 
             <div class="bg-[#cbcbbf] p-4 md:p-10 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] min-h-[400px]">
-                <!-- ผังต้นไม้จะถูก Render ที่นี่ -->
                 <div class="org-tree" id="tree-container">
                     <div class="flex items-center justify-center h-40 text-gray-500 font-bold animate-pulse">LOADING DATA...</div>
                 </div>
@@ -253,9 +259,8 @@
                 </h2>
                 
                 <div class="bg-[#cbcbbf] p-4 rounded shadow-inner border border-gray-400 mb-6">
-                    <h3 class="font-bold mb-3 thai-text">เพิ่ม / แก้ไข สมาชิก (Sync to Sheets)</h3>
-                    <form id="admin-form" onsubmit="saveMember(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 thai-text">
-                        <input type="hidden" id="edit-mode" value="false">
+                    <h3 class="font-bold mb-3 thai-text">เพิ่มสมาชิก / จัดการตำแหน่ง</h3>
+                    <form id="admin-form" onsubmit="saveMemberManual(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 thai-text">
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1">รหัสนักศึกษา (10 หลัก)</label>
                             <input type="text" id="member-id" required pattern="[0-9]{10}" class="w-full p-2 rounded border border-gray-400 font-mono text-sm" placeholder="เช่น 6910616249">
@@ -267,173 +272,134 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-600 mb-1">ตำแหน่ง</label>
                             <select id="member-position" required class="w-full p-2 rounded border border-gray-400 text-sm bg-white">
-                                <option value="President">ประธานรุ่น</option>
-                                <option value="VP">รองประธาน</option>
-                                <option value="Member" selected>สมาชิก</option>
+                                <option value="ประธานรุ่น">ประธานรุ่น</option>
+                                <option value="รองประธาน">รองประธาน</option>
+                                <option value="สมาชิก" selected>สมาชิก</option>
                             </select>
                         </div>
                         <div class="flex items-end gap-2">
                             <button type="submit" class="keycap w-full py-2 text-sm font-bold !w-full !m-0 bg-gradient-to-b from-green-200 to-green-400 border-green-600">SAVE_</button>
-                            <button type="button" onclick="resetAdminForm()" class="keycap py-2 px-3 text-sm font-bold !w-auto !m-0 bg-gradient-to-b from-gray-200 to-gray-300">X</button>
                         </div>
                     </form>
 
                     <!-- CSV Import Section -->
                     <div class="mt-6 pt-4 border-t border-gray-400">
-                        <h4 class="font-bold mb-2 thai-text text-sm">อัปโหลดข้อมูลจากไฟล์ CSV (Bulk Import)</h4>
+                        <h4 class="font-bold mb-2 thai-text text-sm flex items-center gap-2">
+                            <span class="bg-blue-600 w-2 h-2 rounded-full inline-block"></span>
+                            อัปโหลดข้อมูลจากไฟล์ CSV Google Form (Bulk Import)
+                        </h4>
                         <div class="flex gap-2 items-center flex-wrap">
                             <input type="file" id="csv-file" accept=".csv" class="border border-gray-400 p-1 text-sm bg-white rounded cursor-pointer">
                             <button type="button" onclick="importCSV()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0">IMPORT_CSV</button>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1 thai-text">รูปแบบหัวคอลัมน์บรรทัดแรก: <span class="font-mono bg-gray-200 px-1 border border-gray-300">studentId</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">name</span></p>
+                        <p class="text-xs text-gray-600 mt-2 thai-text">
+                            ระบบจะเชื่อมหัวข้อภาษาไทยอัตโนมัติ: <br>
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">รหัสนักศึกษา</span>,
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อ</span>,
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">นามสกุล</span>,
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อเล่น</span>,
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">ID Line</span>,
+                            <span class="font-mono bg-gray-200 px-1 border border-gray-300">Instagram</span>
+                        </p>
                     </div>
-                </div>
-
-                <div class="overflow-x-auto bg-white border border-gray-400 shadow-inner">
-                    <table class="w-full text-left border-collapse thai-text">
-                        <thead>
-                            <tr class="bg-gray-200 border-b border-gray-400">
-                                <th class="p-3 font-bold text-sm">รูป</th>
-                                <th class="p-3 font-bold text-sm">รหัสนักศึกษา</th>
-                                <th class="p-3 font-bold text-sm">ชื่อ-นามสกุล</th>
-                                <th class="p-3 font-bold text-sm">ตำแหน่ง</th>
-                                <th class="p-3 font-bold text-sm text-center">จัดการ</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-table-body">
-                            <!-- แถวจะถูกเพิ่มด้วย JS -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- Modal: Profile & Messages -->
+    <!-- Modal: Profile & Status Update -->
     <div id="profile-modal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
         <!-- คลิกพื้นหลังเพื่อปิด -->
         <div class="absolute inset-0" onclick="closeProfile()"></div>
         
-        <div class="bg-[#dfdfd5] w-full max-w-lg rounded-xl shadow-2xl relative z-10 border-2 border-white flex flex-col max-h-[90vh]">
+        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white flex flex-col">
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 z-20">X</button>
             
-            <!-- Header Profile -->
             <div class="p-6 border-b-2 border-gray-400 flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-gray-200 to-transparent rounded-t-xl">
-                <img id="modal-img" src="" alt="Profile" class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover z-10 mb-3 bg-gray-300">
-                <h3 id="modal-name" class="thai-text text-xl font-bold text-gray-800 z-10">Name</h3>
-                <p id="modal-id" class="text-sm font-mono text-gray-600 z-10 mb-1">ID</p>
-                <div id="modal-position" class="thai-text text-xs bg-[#1a1a1a] text-[#4ade80] px-3 py-1 rounded-full font-bold shadow-inner z-10 tracking-widest">POSITION</div>
+                <img id="modal-img" src="" alt="Profile" class="w-24 h-24 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300 filter grayscale contrast-125">
+                <h3 id="modal-name" class="thai-text text-xl font-bold text-gray-800 z-10 text-center">Name</h3>
+                <p id="modal-id" class="text-sm font-mono text-gray-600 z-10 mb-2">ID</p>
+                <div id="modal-position" class="thai-text text-xs bg-gray-800 text-white px-3 py-1 rounded font-bold shadow-inner z-10 tracking-widest uppercase mb-4">POSITION</div>
+
+                <!-- Contact Info (Line / IG) -->
+                <div class="w-full text-center thai-text text-sm text-gray-700 mb-2">
+                    <p id="modal-nickname" class="font-bold"></p>
+                    <p id="modal-line" class="text-xs"></p>
+                    <p id="modal-ig" class="text-xs"></p>
+                </div>
                 
-                <!-- Status Update Form (Only visible to profile owner) -->
-                <form id="status-form" onsubmit="updateStatus(event)" class="mt-3 w-full px-4 hidden z-10 flex-col items-center">
-                    <div class="flex gap-2 w-full max-w-xs">
-                        <input type="text" id="status-input" maxlength="30" class="flex-grow p-1.5 px-3 text-xs rounded-full border border-gray-400 font-mono shadow-inner outline-none focus:border-green-600" placeholder="ตั้งสเตตัสสั้นๆ...">
-                        <button type="submit" id="status-btn" class="bg-gray-800 text-white px-3 py-1 rounded-full text-xs font-bold hover:bg-gray-700 transition">UPDATE</button>
+                <!-- Status Update Form (IG Style LED box, visible to owner) -->
+                <form id="status-form" onsubmit="updateStatus(event)" class="mt-2 w-full px-2 hidden z-10 flex-col items-center">
+                    <label class="text-[10px] text-gray-500 font-bold mb-1">STATUS (MAX 30 CHARS)</label>
+                    <div class="flex gap-2 w-full">
+                        <input type="text" id="status-input" maxlength="30" class="flex-grow p-1.5 px-3 text-xs rounded border border-gray-400 font-mono shadow-inner outline-none focus:border-green-600 bg-white" placeholder="อัปเดตสถานะของคุณ...">
+                        <button type="submit" id="status-btn" class="keycap py-1 px-3 !m-0 text-xs font-bold bg-green-200">UPDATE</button>
                     </div>
                 </form>
             </div>
-
-            <!-- Message Board (IG Style) -->
-            <div class="flex-grow p-4 bg-[#f5f5f0] overflow-y-auto message-board" id="message-container">
-                <div class="text-center text-gray-400 text-sm thai-text py-4 font-bold" id="msg-loading">กำลังโหลดข้อความ...</div>
-                <!-- Messages will appear here -->
-            </div>
-
-            <!-- Message Input -->
-            <div class="p-4 border-t border-gray-300 bg-[#ebebe6] rounded-b-xl">
-                <form onsubmit="postMessage(event)" class="flex gap-2">
-                    <input type="text" id="message-input" required class="flex-grow p-2 rounded-full border border-gray-400 focus:outline-none focus:border-gray-600 text-sm thai-text px-4" placeholder="เขียนข้อความทักทาย...">
-                    <button type="submit" id="post-btn" class="bg-gray-800 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-700 transition">POST</button>
-                </form>
-            </div>
         </div>
     </div>
 
-    <!-- Alert Modal (Custom Alert) -->
+    <!-- Alert Modal -->
     <div id="alert-modal" class="fixed inset-0 modal-bg z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] border-2 border-gray-400 rounded shadow-2xl p-6 max-w-sm w-full text-center">
-            <h3 class="font-bold mb-2 thai-text" id="alert-title">แจ้งเตือน</h3>
-            <p class="text-sm text-gray-700 mb-6 thai-text" id="alert-msg">Message</p>
-            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap py-2 px-6 text-sm font-bold !w-auto">OK</button>
+        <div class="bg-[#dfdfd5] border-2 border-white rounded-lg shadow-2xl p-6 max-w-sm w-full text-center">
+            <h3 class="font-bold mb-2 thai-text text-lg" id="alert-title">แจ้งเตือน</h3>
+            <p class="text-sm text-gray-700 mb-6 thai-text whitespace-pre-line" id="alert-msg">Message</p>
+            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap py-2 px-6 text-sm font-bold !w-auto">OK_</button>
         </div>
     </div>
 
     <!-- ----------------------------------------------------------- -->
-    <!-- JAVASCRIPT: FETCH API & APP LOGIC -->
+    <!-- JAVASCRIPT & FIREBASE INTEGRATION -->
     <!-- ----------------------------------------------------------- -->
-    <script>
-        // ---------------------------------------------------------
-        // 📌 ใส่ URL ของ Google Apps Script Web App ของคุณที่นี่
-        // ---------------------------------------------------------
-        const GOOGLE_SHEET_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Your Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
+            authDomain: "class-directory-3b8c9.firebaseapp.com",
+            projectId: "class-directory-3b8c9",
+            storageBucket: "class-directory-3b8c9.firebasestorage.app",
+            messagingSenderId: "571082825613",
+            appId: "1:571082825613:web:de6921e521caef79be67c4",
+            measurementId: "G-NP07FSMQ51"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Security / Path definition 
+        // Following system strict rules for artifact path structure to avoid permission errors
+        const APP_ID = 'class-directory'; 
+        const USERS_PATH = `artifacts/${APP_ID}/public/data/users`; 
 
         const ADMIN_ID = '6910616249';
-
-        // State variables
-        let currentUserData = null; // { studentId, isAdmin }
+        let currentUser = null;
         let membersData = [];
-        let messagesData = [];
         let currentProfileId = null;
 
-        // Custom Alert
-        function showAlert(title, msg) {
+        // Custom Alert Wrapper
+        window.showAlert = function(title, msg) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = msg;
             document.getElementById('alert-modal').classList.remove('hidden');
         }
 
-        // View Router
-        function switchView(viewId) {
+        window.switchView = function(viewId) {
             ['auth-view', 'directory-view', 'admin-view'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
         }
 
-        // ==========================================
-        // 🌐 MOCK BACKEND (สำหรับกรณีทดสอบ UI ก่อนต่อ Sheets)
-        // ==========================================
-        const MockDB = {
-            users: [{ id: '6910616249', pass: '1234' }],
-            members: [
-                { studentId: '6910616249', name: 'แอดมิน หลัก', position: 'President', status: 'HELLO WORLD' },
-                { studentId: '6910000001', name: 'รองประธาน 1', position: 'VP', status: 'Busy' },
-                { studentId: '6910000002', name: 'สมาชิก ทดสอบ', position: 'Member', status: '' }
-            ],
-            messages: []
-        };
-
-        // ==========================================
-        // 📡 API CALL WRAPPER (Fetch to Google Sheets)
-        // ==========================================
-        async function fetchAPI(action, payload = {}) {
-            // หาก URL ยังเป็น Placeholder ให้ใช้ MockDB เพื่อให้เว็บทำงานและเทส UI ได้
-            if (GOOGLE_SHEET_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE")) {
-                console.warn("⚠️ DEMO MODE: ยังไม่ได้เชื่อมต่อ Google Sheets จริง (ใช้ Mock Data)");
-                return await simulateMockAPI(action, payload);
-            }
-
-            try {
-                // ส่ง POST Request ไปยัง Web App
-                // หมายเหตุ: ใช้ text/plain เพื่อหลีกเลี่ยงปัญหา CORS Preflight ในบางกรณีของ GAS
-                const response = await fetch(GOOGLE_SHEET_WEB_APP_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: action, payload: payload })
-                });
-                
-                const result = await response.json();
-                if (!result.success) throw new Error(result.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
-                return result.data;
-            } catch (error) {
-                console.error("API Fetch Error:", error);
-                throw error;
-            }
-        }
-
-        // --- AUTHENTICATION ---
-        async function handleAuth(e, isRegister = false) {
+        // ====== AUTHENTICATION LOGIC ======
+        window.handleAuth = async function(e, isRegister = false) {
             e.preventDefault();
             const idInput = document.getElementById('auth-id').value.trim();
             const passInput = document.getElementById('auth-password').value;
@@ -447,59 +413,120 @@
             }
 
             errorDiv.classList.add('hidden');
+            const originalText = loginBtn.innerText;
             loginBtn.innerText = "PROCESSING...";
+            loginBtn.disabled = true;
+
+            // แปลงรหัสนักศึกษาให้เป็น Email ของโดเมนที่กำหนด
+            const emailFormat = `${idInput}@dome.tu.ac.th`;
 
             try {
-                const action = isRegister ? 'register' : 'login';
-                await fetchAPI(action, { studentId: idInput, password: passInput });
-                
                 if (isRegister) {
-                    showAlert("สำเร็จ", "ลงทะเบียนเรียบร้อยแล้ว ล็อกอินเข้าสู่ระบบ...");
+                    await createUserWithEmailAndPassword(auth, emailFormat, passInput);
+                    showAlert("สำเร็จ", "ลงทะเบียนเรียบร้อยแล้ว ระบบกำลังเข้าสู่ระบบอัตโนมัติ...");
                 } else {
-                    // Login Success
-                    currentUserData = {
-                        studentId: idInput,
-                        isAdmin: (idInput === ADMIN_ID)
-                    };
-                    updateAuthUI();
-                    loadMembersData();
+                    await signInWithEmailAndPassword(auth, emailFormat, passInput);
                 }
             } catch (error) {
-                errorDiv.innerText = error.message || (isRegister ? "ไม่สามารถลงทะเบียนได้" : "รหัสผ่านไม่ถูกต้อง");
+                console.error("Auth Error:", error);
+                let errorMsg = error.message;
+                if (error.code === 'auth/email-already-in-use') errorMsg = "รหัสนักศึกษานี้ลงทะเบียนแล้ว กรุณาเข้าสู่ระบบ";
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = "รหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ลงทะเบียน";
+                if (error.code === 'auth/weak-password') errorMsg = "รหัสผ่านอ่อนเกินไป (ต้องมี 6 ตัวขึ้นไป)";
+                
+                errorDiv.innerText = errorMsg;
                 errorDiv.classList.remove('hidden');
             } finally {
-                loginBtn.innerText = "LOGIN";
+                loginBtn.innerText = originalText;
+                loginBtn.disabled = false;
             }
         }
 
-        function updateAuthUI() {
-            if (currentUserData) {
+        window.logout = function() {
+            signOut(auth);
+        }
+
+        // Listener สำหรับตรวจสอบสถานะ Auth
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ตัด @dome.tu.ac.th ออกเพื่อให้เหลือแค่รหัสนักศึกษา 10 หลัก
+                const studentId = user.email.split('@')[0]; 
+                currentUser = {
+                    uid: user.uid,
+                    studentId: studentId,
+                    isAdmin: (studentId === ADMIN_ID)
+                };
+                
                 document.getElementById('navbar').style.display = 'flex';
-                if (currentUserData.isAdmin) {
+                if (currentUser.isAdmin) {
                     document.getElementById('admin-nav-btn').classList.remove('hidden');
                 } else {
                     document.getElementById('admin-nav-btn').classList.add('hidden');
                 }
+                
                 switchView('directory-view');
+                document.getElementById('auth-form').reset();
+                
+                // โหลดข้อมูลเมื่อล็อคอินสำเร็จ
+                loadMembersData();
             } else {
+                currentUser = null;
                 document.getElementById('navbar').style.display = 'none';
                 switchView('auth-view');
-                document.getElementById('auth-form').reset();
+            }
+        });
+
+        // ====== FIRESTORE LOGIC ======
+
+        // ฟังก์ชันดึงข้อมูลจาก Firestore เพื่อแสดงแผนผัง
+        async function loadMembersData() {
+            if (!currentUser) return;
+            try {
+                const usersColRef = collection(db, USERS_PATH);
+                const snapshot = await getDocs(usersColRef);
+                membersData = [];
+                snapshot.forEach(docSnap => {
+                    membersData.push({ ...docSnap.data() });
+                });
+                renderTree();
+            } catch (error) {
+                console.error("Error fetching users:", error);
+                document.getElementById('tree-container').innerHTML = 
+                    `<div class="text-red-500 font-bold">เกิดข้อผิดพลาดในการโหลดข้อมูล (Permission Denied หรือ Network Error)</div>`;
             }
         }
 
-        function logout() {
-            currentUserData = null;
-            updateAuthUI();
-        }
-        window.resetAdminForm = () => {
-            document.getElementById('admin-form').reset();
-            document.getElementById('edit-doc-id').value = '';
-        };
+        // เพิ่มสมาชิกแบบ Manual (สำหรับแอดมิน)
+        window.saveMemberManual = async function(e) {
+            e.preventDefault();
+            if (!currentUser || !currentUser.isAdmin) return;
 
-        // --- BULK IMPORT CSV ---
-        window.importCSV = () => {
-            if (!isAdmin) return;
+            const id = document.getElementById('member-id').value.trim();
+            const name = document.getElementById('member-name').value.trim();
+            const position = document.getElementById('member-position').value;
+
+            try {
+                const userDocRef = doc(db, USERS_PATH, id);
+                await setDoc(userDocRef, {
+                    studentId: id,
+                    name: name,
+                    position: position,
+                    status: '',
+                    updatedAt: new Date().toISOString()
+                }, { merge: true });
+                
+                showAlert("สำเร็จ", `บันทึกข้อมูล ${name} เรียบร้อยแล้ว`);
+                document.getElementById('admin-form').reset();
+                loadMembersData();
+            } catch (error) {
+                console.error("Save error:", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
+            }
+        }
+
+        // ระบบ Import CSV
+        window.importCSV = function() {
+            if (!currentUser || !currentUser.isAdmin) return;
             const fileInput = document.getElementById('csv-file');
             if (!fileInput.files.length) {
                 showAlert("แจ้งเตือน", "กรุณาเลือกไฟล์ CSV ก่อนทำการ Import");
@@ -507,153 +534,155 @@
             }
             
             const file = fileInput.files[0];
+            const btn = document.querySelector('button[onclick="importCSV()"]');
+            btn.innerText = "PROCESSING...";
+            btn.disabled = true;
             
-            // อ่านไฟล์ด้วย PapaParse
             window.Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
                 complete: async function(results) {
-                    const data = results.data;
                     let successCount = 0;
                     let skipCount = 0;
 
-                    for (const row of data) {
-                        const studentId = row.studentId ? String(row.studentId).trim() : '';
-                        const name = row.name ? String(row.name).trim() : '';
+                    for (const row of results.data) {
+                        const studentId = row['รหัสนักศึกษา'] ? String(row['รหัสนักศึกษา']).trim() : '';
                         
-                        if (studentId.length === 10 && name) {
-                            // ตรวจสอบว่ามีรหัสนี้อยู่แล้วหรือไม่
-                            if (!membersData.some(m => m.studentId === studentId)) {
-                                try {
-                                    await addDoc(MEMBERS_COLL, {
+                        // ตรวจสอบความถูกต้องพื้นฐาน
+                        if (studentId.length === 10) {
+                            try {
+                                const userDocRef = doc(db, USERS_PATH, studentId);
+                                const snap = await getDoc(userDocRef);
+                                
+                                // เช็คว่ามีข้อมูลอยู่แล้วหรือยัง ถ้ายังไม่มีให้สร้างใหม่ (Check if exists)
+                                if (!snap.exists()) {
+                                    // Mapping Data ตามรูปแบบจาก Google Forms ของผู้ใช้
+                                    const nameFirst = row['ชื่อ'] ? String(row['ชื่อ']).trim() : '';
+                                    const nameLast = row['นามสกุล'] ? String(row['นามสกุล']).trim() : '';
+                                    const fullName = (nameFirst + ' ' + nameLast).trim();
+
+                                    await setDoc(userDocRef, {
                                         studentId: studentId,
-                                        name: name,
-                                        position: 'Member', // ตั้งค่า default เป็นสมาชิก
-                                        updatedAt: new Date().toISOString()
+                                        name: fullName || 'ไม่ระบุชื่อ',
+                                        nickname: row['ชื่อเล่น'] ? String(row['ชื่อเล่น']).trim() : '',
+                                        lineId: row['ID Line'] ? String(row['ID Line']).trim() : '',
+                                        ig: row['Instagram'] ? String(row['Instagram']).trim() : '',
+                                        driveImg: row['อัพโหลดรูปหน้าตัวเอง'] ? String(row['อัพโหลดรูปหน้าตัวเอง']).trim() : '',
+                                        position: 'สมาชิก', // ตำแหน่ง Default
+                                        status: '',
+                                        importedAt: new Date().toISOString()
                                     });
                                     successCount++;
-                                } catch (err) {
-                                    console.error("Import error on row:", row, err);
+                                } else {
+                                    // ข้ามกรณีที่มี Document อยู่แล้ว
+                                    skipCount++;
                                 }
-                            } else {
-                                skipCount++; // ข้ามคนที่มีอยู่แล้ว
+                            } catch (err) {
+                                console.error(`Import error on row ${studentId}:`, err);
+                                skipCount++;
                             }
                         } else {
-                            skipCount++; // ข้ามข้อมูลที่ไม่สมบูรณ์
+                            // ข้อมูลบรรทัดนี้ไม่มีรหัส 10 หลัก
+                            skipCount++; 
                         }
                     }
                     
-                    fileInput.value = ""; // เคลียร์ไฟล์
-                    showAlert("นำเข้าข้อมูลสำเร็จ", "เพิ่มข้อมูลใหม่: " + successCount + " รายการ\nข้ามข้อมูล (ซ้ำ/ไม่สมบูรณ์): " + skipCount + " รายการ");
+                    fileInput.value = "";
+                    btn.innerText = "IMPORT_CSV";
+                    btn.disabled = false;
+                    showAlert("นำเข้าข้อมูลสำเร็จ", `เพิ่มข้อมูลใหม่: ${successCount} รายการ\nข้ามข้อมูล (มีอยู่แล้ว/ผิดรูปแบบ): ${skipCount} รายการ`);
+                    loadMembersData();
                 },
                 error: function(err) {
                     showAlert("ข้อผิดพลาด", "ไม่สามารถอ่านไฟล์ CSV ได้");
                     console.error("PapaParse error:", err);
+                    btn.innerText = "IMPORT_CSV";
+                    btn.disabled = false;
                 }
             });
         };
 
-        function renderAdminTable() {
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
-            
-            const sorted = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
-            
-            sorted.forEach(member => {
-                const imgUrl = `/assets/${member.studentId}.png`;
-                const fallbackUrl = `https://placehold.co/100x100/d1d1c8/333333?text=${member.studentId.substring(0,2)}`;
-                
-                const tr = document.createElement('tr');
-                tr.className = "border-b border-gray-300 hover:bg-gray-100";
-                tr.innerHTML = `
-                    <td class="p-2">
-                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';" class="w-10 h-10 rounded object-cover border border-gray-400">
-                    </td>
-                    <td class="p-2 font-mono text-sm">${member.studentId}</td>
-                    <td class="p-2 text-sm">${member.name}</td>
-                    <td class="p-2 text-sm">
-                        <span class="px-2 py-1 rounded text-xs text-white ${member.position === 'President' ? 'bg-red-800' : member.position === 'VP' ? 'bg-orange-600' : 'bg-gray-600'}">
-                            ${member.position}
-                        </span>
-                    </td>
-                    <td class="p-2 text-center">
-                        <button onclick="editMember('${member.studentId}')" class="text-blue-600 hover:underline text-xs mr-2">แก้ไข</button>
-                        <button onclick="deleteMember('${member.studentId}')" class="text-red-600 hover:underline text-xs">ลบ</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        // --- TREE RENDERING ---
+        // ====== TREE RENDERING ======
         function renderTree() {
             const container = document.getElementById('tree-container');
             
             if (membersData.length === 0) {
-                container.innerHTML = `<div class="flex items-center justify-center h-40 text-gray-500 font-bold">ไม่มีข้อมูลในระบบ...<br>(แอดมินกรุณาเพิ่มข้อมูล)</div>`;
+                container.innerHTML = `<div class="flex items-center justify-center h-40 text-gray-500 font-bold">ไม่มีข้อมูลในระบบ...<br>แอดมินกรุณาอัปโหลดไฟล์ CSV</div>`;
                 return;
             }
 
-            const president = membersData.find(m => m.position === 'President');
-            const vps = membersData.filter(m => m.position === 'VP');
+            // แยกหมวดหมู่ตามตำแหน่ง
+            const presidents = membersData.filter(m => m.position === 'ประธานรุ่น');
+            const president = presidents.length > 0 ? presidents[0] : null; 
+            
+            const vps = membersData.filter(m => m.position === 'รองประธาน');
             const vp = vps.length > 0 ? vps[0] : null; 
-            const members = membersData.filter(m => m.position === 'Member');
+            
+            const members = membersData.filter(m => m.position === 'สมาชิก');
 
+            // เริ่มต่อ String ของ HTML (ใช้โครงสร้าง <ul> <li> ซ้อนกันเพื่อสร้างผังองค์กรแบบแนวตั้ง-แตกกิ่ง)
             let html = `<ul>`;
             
+            // 1. ระดับประธาน
             if (president) {
                 html += `<li>${buildKeycapNode(president, 'president')}<ul>`;
             } else {
-                html += `<li><div class="text-xs text-red-500 font-bold mb-4">[ไม่มีข้อมูลประธาน]</div><ul>`;
+                html += `<li><div class="text-xs text-red-500 font-bold mb-4">[ไม่มีตำแหน่ง ประธานรุ่น]</div><ul>`;
             }
 
+            // 2. ระดับรองประธาน (อยู่ตรงกลางเดี่ยวๆ ลงมาจากประธาน)
             if (vp) {
-                html += `<li>${buildKeycapNode(vp)}<ul>`;
+                html += `<li>${buildKeycapNode(vp, 'normal')}<ul>`;
             } else {
-                html += `<li><div class="text-xs text-orange-500 font-bold mb-4">[ไม่มีข้อมูลรองประธาน]</div><ul>`;
+                html += `<li><div class="text-xs text-orange-500 font-bold mb-4">[ไม่มีตำแหน่ง รองประธาน]</div><ul>`;
             }
 
-            members.forEach(m => {
-                html += `<li>${buildKeycapNode(m, 'small')}</li>`;
-            });
+            // 3. ระดับสมาชิก (กางออกแนวนอนทั้งหมด)
+            if (members.length > 0) {
+                members.forEach(m => {
+                    html += `<li>${buildKeycapNode(m, 'small')}</li>`;
+                });
+            } else {
+                html += `<li><div class="text-xs text-gray-500 font-bold">ยังไม่มีสมาชิก</div></li>`;
+            }
 
-            html += `</ul></li>`;
-            if (president) html += `</ul></li>`;
-            else html += `</ul></li>`;
+            // ปิด Tag
+            html += `</ul></li>`; // ปิดกิ่งรองประธาน
+            html += `</ul></li>`; // ปิดกิ่งประธาน
+            html += `</ul>`;      // ปิด Tree หลัก
 
             container.innerHTML = html;
         }
 
-        function buildKeycapNode(member, type = 'normal') {
+        // Component: ปุ่มรายบุคคลบนผัง
+        window.buildKeycapNode = function(member, type = 'normal') {
             const imgUrl = `/assets/${member.studentId}.png`;
-            const fallbackUrl = `https://placehold.co/100x100/d1d1c8/333333?text=${member.name.substring(0,2)}`;
+            const fallbackUrl = `/assets/images.png`; // Fallback image requested
             const isPres = type === 'president';
             const isSmall = type === 'small';
             
-            const wClass = isSmall ? 'w-28' : 'w-40';
-            const imgSize = isSmall ? 'w-10 h-10' : 'w-16 h-16';
+            const wClass = isSmall ? 'w-32' : 'w-48';
+            const imgSize = isSmall ? 'w-12 h-12' : 'w-20 h-20';
             const nameSize = isSmall ? 'text-xs' : 'text-sm';
-            
-            let posLabel = "สมาชิก";
-            if(member.position === 'President') posLabel = "ประธานรุ่น";
-            if(member.position === 'VP') posLabel = "รองประธาน";
 
-            const statusHtml = member.status ? `<div class="mt-2 text-[9px] text-[#4ade80] bg-[#1a1a1a] px-1 py-0.5 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis border border-[#555] shadow-inner font-mono" title="${member.status}">${member.status}</div>` : '';
+            const statusHtml = member.status 
+                ? `<div class="mt-2 text-[10px] led-status px-2 py-0.5 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis border border-[#555] shadow-inner font-mono" title="${member.status}">${member.status}</div>` 
+                : '';
 
             return `
                 <div class="keycap ${isPres ? 'president' : ''} p-3 flex flex-col items-center ${wClass}" onclick="openProfile('${member.studentId}')">
-                    <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';" alt="Profile" class="${imgSize} profile-img mb-2 shadow-inner">
+                    <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';" alt="Profile" class="${imgSize} profile-img mb-2 shadow-inner filter grayscale contrast-125">
                     <p class="thai-text ${nameSize} font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${member.name}</p>
                     <div class="w-full mt-1 pt-1 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
-                        <p class="thai-text text-[10px] text-gray-600 font-bold">${posLabel}</p>
+                        <p class="thai-text text-[10px] text-gray-600 font-bold">${member.position}</p>
                     </div>
                     ${statusHtml}
                 </div>
             `;
         }
 
-        // --- PROFILE & MESSAGES ---
-        async function openProfile(studentId) {
+        // ====== PROFILE MODAL & STATUS UPDATE ======
+        window.openProfile = function(studentId) {
             const member = membersData.find(m => m.studentId === studentId);
             if (!member) return;
 
@@ -661,19 +690,23 @@
             
             document.getElementById('modal-name').innerText = member.name;
             document.getElementById('modal-id').innerText = member.studentId;
-            
-            let posLabel = "MEMBER";
-            if(member.position === 'President') posLabel = "PRESIDENT";
-            if(member.position === 'VP') posLabel = "VICE PRESIDENT";
-            document.getElementById('modal-position').innerText = posLabel;
+            document.getElementById('modal-position').innerText = member.position;
 
+            // Social Info
+            document.getElementById('modal-nickname').innerText = member.nickname ? `ชื่อเล่น: ${member.nickname}` : '';
+            document.getElementById('modal-line').innerText = member.lineId ? `Line ID: ${member.lineId}` : '';
+            document.getElementById('modal-ig').innerText = member.ig ? `IG: ${member.ig}` : '';
+
+            // Image Handler
             const img = document.getElementById('modal-img');
             img.src = `/assets/${member.studentId}.png`;
-            img.onerror = () => { img.src = `https://placehold.co/200x200/d1d1c8/333333?text=${member.name.substring(0,2)}`; };
+            img.onerror = () => { img.src = `/assets/images.png`; };
 
+            // Control form visibility (เฉพาะเจ้าของโปรไฟล์ถึงจะแก้สถานะตัวเองได้)
             const statusForm = document.getElementById('status-form');
             const statusInput = document.getElementById('status-input');
-            if (currentUserData && currentUserData.studentId === studentId) {
+            
+            if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden');
                 statusForm.classList.add('flex');
                 statusInput.value = member.status || '';
@@ -683,73 +716,46 @@
             }
 
             document.getElementById('profile-modal').classList.remove('hidden');
-            await loadMessages(studentId);
         }
 
-        function closeProfile() {
+        window.closeProfile = function() {
             document.getElementById('profile-modal').classList.add('hidden');
             currentProfileId = null;
         }
 
-        async function loadMessages(studentId) {
-            const container = document.getElementById('message-container');
-            container.innerHTML = `<div class="text-center text-gray-400 text-sm thai-text py-4">กำลังโหลดข้อความ...</div>`;
-            try {
-                messagesData = await fetchAPI('getMessages', { recipientId: studentId });
-                renderMessages(studentId);
-            } catch (error) {
-                container.innerHTML = `<div class="text-center text-red-400 text-sm thai-text py-4">เกิดข้อผิดพลาดในการโหลดข้อความ</div>`;
-            }
-        }
-
-        function renderMessages(studentId) {
-            const container = document.getElementById('message-container');
-            
-            const msgs = messagesData
-                            .filter(m => m.recipientId === studentId)
-                            .sort((a,b) => a.timestamp - b.timestamp);
-
-            if (msgs.length === 0) {
-                container.innerHTML = `<div class="text-center text-gray-400 text-xs thai-text py-10">ยังไม่มีข้อความ เริ่มทักทายเลย!</div>`;
-                return;
-            }
-
-            let html = '<div class="flex flex-col gap-3 pb-2">';
-            msgs.forEach(msg => {
-                const isMe = msg.senderId === currentUserData.studentId;
-                const d = new Date(msg.timestamp);
-                const timeStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-                
-                html += `
-                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                        <span class="text-[10px] text-gray-500 font-mono mb-1 mx-1">${isMe ? 'You' : msg.senderId} • ${timeStr}</span>
-                        <div class="max-w-[80%] rounded-2xl px-4 py-2 text-sm thai-text shadow-sm ${isMe ? 'bg-gray-800 text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'}">
-                            ${msg.text}
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function postMessage(e) {
+        // บันทึกสเตตัสลงฐานข้อมูลส่วนกลาง (Firestore)
+        window.updateStatus = async function(e) {
             e.preventDefault();
-            if (!currentUserData || !currentProfileId) return;
+            if (!currentUser || !currentProfileId) return;
+            if (currentUser.studentId !== currentProfileId) return; // ป้องกันแก้ของคนอื่น
 
-            const input = document.getElementById('message-input');
-            const text = input.value.trim();
-            const btn = document.getElementById('post-btn');
+            const statusVal = document.getElementById('status-input').value.trim();
+            const btn = document.getElementById('status-btn');
+            const originalText = btn.innerText;
             
-            if (!text) return;
+            btn.innerText = "...";
             btn.disabled = true;
 
             try {
-                await fetchAPI('postMessage', {
-                    recipientId: currentProfileId,
-                    senderId: currentUserData.studentId,
-                    text: text,
-                    timestamp: Date.now()
+                const userDocRef = doc(db, USERS_PATH, currentProfileId);
+                await updateDoc(userDocRef, {
+                    status: statusVal
                 });
-                input
+                
+                // อัปเดต State ใน Memory แทนการ Fetch ใหม่ทั้งหมดเพื่อความเร็ว
+                const memberIndex = membersData.findIndex(m => m.studentId === currentProfileId);
+                if (memberIndex !== -1) membersData[memberIndex].status = statusVal;
+                
+                renderTree();
+                closeProfile();
+            } catch (error) {
+                console.error("Update Status Error:", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตสเตตัสได้");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
