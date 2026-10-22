@@ -427,49 +427,44 @@
         window.logout = async function() {
             try {
                 await signOut(auth);
-                // Will automatically fallback to Anonymous in onAuthStateChanged
+                switchView('directory-view');
             } catch(e) { console.error("Logout error", e); }
         }
 
+        // ====== สั่งดึงข้อมูลทันทีโดยไม่ต้องรอเช็ค Login ======
+        if (!isDataSubscribed) {
+            subscribeToData();
+        }
+
         // Handle Public Access vs Logged In
-        onAuthStateChanged(auth, async (user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                const isAnon = user.isAnonymous;
                 const email = user.email || '';
-                const studentId = isAnon ? null : email.split('@')[0]; 
+                const studentId = email.split('@')[0]; 
                 
                 currentUser = {
                     uid: user.uid,
                     studentId: studentId,
-                    isAdmin: (studentId === ADMIN_ID),
-                    isAnon: isAnon
+                    isAdmin: (studentId === ADMIN_ID)
                 };
                 
                 // Update Navbar UI
-                if (!isAnon) {
-                    document.getElementById('login-nav-btn').classList.add('hidden');
-                    document.getElementById('logout-nav-btn').classList.remove('hidden');
-                    if (currentUser.isAdmin) document.getElementById('admin-nav-btn').classList.remove('hidden');
-                    switchView('directory-view');
-                    document.getElementById('auth-form').reset();
-                } else {
-                    // Anonymous User (Public view)
-                    document.getElementById('login-nav-btn').classList.remove('hidden');
-                    document.getElementById('logout-nav-btn').classList.add('hidden');
-                    document.getElementById('admin-nav-btn').classList.add('hidden');
-                }
+                document.getElementById('login-nav-btn').classList.add('hidden');
+                document.getElementById('logout-nav-btn').classList.remove('hidden');
+                if (currentUser.isAdmin) document.getElementById('admin-nav-btn').classList.remove('hidden');
                 
-                // Start listening to data if not already
-                if (!isDataSubscribed) subscribeToData();
+                // ถ้าล็อกอินสำเร็จแล้วค้างอยู่หน้า Login ให้กลับไปหน้าหลัก
+                if(!document.getElementById('auth-view').classList.contains('hidden')){
+                    switchView('directory-view');
+                }
+                document.getElementById('auth-form').reset();
                 
             } else {
-                // If logged out completely, sign in anonymously to allow reading public data
+                // หากไม่ได้ล็อกอิน (เป็นผู้ชมทั่วไป)
                 currentUser = null;
-                try {
-                    await signInAnonymously(auth);
-                } catch (error) {
-                    console.error("Anonymous auth failed:", error);
-                }
+                document.getElementById('login-nav-btn').classList.remove('hidden');
+                document.getElementById('logout-nav-btn').classList.add('hidden');
+                document.getElementById('admin-nav-btn').classList.add('hidden');
             }
         });
 
@@ -742,7 +737,7 @@
 
         window.updateStatus = async function(e) {
             e.preventDefault();
-            if (!currentUser || currentUser.isAnon || !window.currentProfileId) return;
+            if (!currentUser || !window.currentProfileId) return;
             
             // Validate ownership/admin
             if (currentUser.studentId !== window.currentProfileId && !currentUser.isAdmin) return; 
