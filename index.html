@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLASS DIRECTORY CN25</title>
-    <!-- โหลด Tailwind CSS -->
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- โหลด PapaParse สำหรับอ่านไฟล์ CSV -->
+    <!-- PapaParse สำหรับอ่าน CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- โหลดฟอนต์ IBM Plex Mono และ Sarabun -->
+    <!-- heic2any สำหรับแปลงไฟล์ .heic จาก iPhone -->
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -17,10 +20,9 @@
             --key-color: #e8e8e1;
             --key-dark: #c4c4b9;
             --text-color: #333333;
-            --line-color: #8e8e82;
             --shadow-base: #a3a39b;
             --terminal-bg: #1a1a1a;
-            --terminal-text: #4ade80; /* Green 400 */
+            --terminal-text: #4ade80; 
         }
 
         body {
@@ -34,11 +36,9 @@
             overflow-x: hidden;
         }
 
-        .thai-text {
-            font-family: 'Sarabun', 'IBM Plex Mono', sans-serif;
-        }
+        .thai-text { font-family: 'Sarabun', 'IBM Plex Mono', sans-serif; }
 
-        /* --- สไตล์ของปุ่มคีย์บอร์ด (Keycap) --- */
+        /* --- สไตล์ปุ่มคีย์บอร์ด 3 มิติ (IBM Model M) --- */
         .keycap {
             background: linear-gradient(180deg, #f5f5f0 0%, #e0e0d5 100%);
             border: 1px solid #c7c7be;
@@ -69,20 +69,23 @@
             border-color: #b5b5a6;
         }
 
+        /* รูปโปรไฟล์ Full Color */
         .profile-img {
-            filter: grayscale(100%) contrast(120%);
             border: 2px solid #b5b5a6;
             background-color: #d1d1c8;
             border-radius: 4px;
             object-fit: cover;
-            width: 150px;
-            height: 150px;
+            width: 100%;
+            height: 220px; 
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
         }
+        
         .keycap:hover .profile-img {
-            filter: grayscale(20%) contrast(110%);
+            transform: scale(1.02);
         }
 
-        /* --- Terminal Inputs --- */
+        /* Terminal Style Input */
         .cmd-input {
             background-color: var(--terminal-bg);
             color: var(--terminal-text);
@@ -94,74 +97,80 @@
             outline: none;
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
         }
-        .cmd-input:focus {
-            border-color: var(--terminal-text);
-        }
-        .cmd-prefix::before {
-            content: "C:\\>";
-            margin-right: 8px;
-            color: var(--terminal-text);
-        }
-
+        .cmd-input:focus { border-color: var(--terminal-text); }
+        
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #dcdcca; }
         ::-webkit-scrollbar-thumb { background: #a3a39b; border-radius: 4px; }
 
-        /* Modal Background */
         .modal-bg {
             background-color: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
         }
         
+        /* IG Style LED Box */
         .led-status {
             background-color: #1a1a1a;
             color: #4ade80;
-            text-shadow: 0 0 4px rgba(74, 222, 128, 0.5);
+            text-shadow: 0 0 4px rgba(74, 222, 128, 0.6);
+            border: 2px solid #000;
         }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar" style="display: none;">
-        <div class="flex items-center gap-4">
-            <img src="/assets/images.png" style="width: 120px; mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x40/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
-            <span class="font-bold tracking-tighter hidden sm:block text-xl">CLASS DIRECTORY CN25</span>
+    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
+        <div class="flex items-center gap-4 cursor-pointer" onclick="switchView('directory-view')">
+            <!-- โลโก้แบบผสมสี (โปร่งใส) -->
+            <img src="assets/images.png" style="mix-blend-mode: multiply; height: 60px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
+            <span class="font-bold tracking-tighter hidden md:block text-xl">CLASS DIRECTORY CN25</span>
         </div>
-        <div class="flex gap-2 sm:gap-4">
-            <button onclick="switchView('directory-view')" class="keycap px-4 py-2 text-sm font-bold">DIRECTORY</button>
-            <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-4 py-2 text-sm font-bold text-red-700 hidden">ADMIN_PANEL</button>
-            <button onclick="logout()" class="keycap px-4 py-2 text-sm font-bold text-gray-600">LOGOUT</button>
+        <div class="flex gap-2 sm:gap-4 items-center">
+            <button onclick="switchView('directory-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold">DIRECTORY</button>
+            <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-red-700 hidden">ADMIN</button>
+            <button id="login-nav-btn" onclick="switchView('auth-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-blue-800">SYSTEM_LOGIN</button>
+            <button id="logout-nav-btn" onclick="logout()" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-gray-600 hidden">LOGOUT</button>
         </div>
     </nav>
 
-    <!-- Main Container -->
-    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-start">
+    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-start w-full">
 
-        <!-- 1. AUTHENTICATION VIEW -->
-        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10">
-            <div class="flex justify-center mb-6">
-                <img src="/assets/images.png" style="width: 120px; mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
+        <!-- 1. DIRECTORY VIEW (Default) -->
+        <div id="directory-view" class="w-full max-w-6xl flex flex-col items-center">
+            <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-6 md:p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 relative overflow-hidden w-full">
+                <img src="assets/images.png" style="mix-blend-mode: multiply; width: 150px;" onerror="this.style.display='none'" alt="TU Logo" class="object-contain absolute opacity-10 right-10 top-2 z-0">
+                <div class="text-center z-10">
+                    <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
+                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
+                </div>
+            </header>
+
+            <div class="bg-[#cbcbbf] p-6 md:p-10 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] min-h-[400px] w-full max-w-5xl">
+                <div id="tree-container" class="w-full py-4">
+                    <div class="flex items-center justify-center h-40 text-gray-500 font-bold animate-pulse">LOADING DATABASE...</div>
+                </div>
             </div>
-            <h1 class="text-2xl font-bold text-center mb-2">CLASS DIRECTORY CN25</h1>
-            <p class="text-center text-sm mb-6 thai-text">กรุณาล็อกอินด้วยรหัสนักศึกษา 10 หลัก<br><span class="text-xs text-gray-500">(ระบบฐานข้อมูลส่วนกลาง)</span></p>
+        </div>
+
+        <!-- 2. AUTHENTICATION VIEW -->
+        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10 hidden">
+            <div class="flex justify-center mb-6">
+                <img src="assets/images.png" style="mix-blend-mode: multiply; width: 120px;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
+            </div>
+            <h1 class="text-2xl font-bold text-center mb-2">SYSTEM LOGIN</h1>
+            <p class="text-center text-sm mb-6 thai-text">ล็อกอินเพื่อแก้ไขสเตตัส หรือลงทะเบียนใหม่<br><span class="text-xs text-gray-500">(ใช้รหัสนักศึกษา 10 หลัก)</span></p>
             
             <div class="bg-black p-4 rounded-lg shadow-inner mb-6 relative">
-                <div class="absolute top-0 left-0 w-full h-full pointer-events-none rounded-lg" style="background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);"></div>
-                
                 <form id="auth-form" onsubmit="handleAuth(event)" class="relative z-10 flex flex-col gap-4">
                     <div>
                         <label class="text-xs text-green-600 font-bold mb-1 block">STUDENT ID_</label>
-                        <div class="flex items-center cmd-prefix">
-                            <input type="text" id="auth-id" required pattern="[0-9]{10}" placeholder="6910616249" class="cmd-input bg-transparent border-none p-0 box-shadow-none" maxlength="10">
-                        </div>
+                        <input type="text" id="auth-id" required pattern="[0-9]{10}" placeholder="6910616249" class="cmd-input" maxlength="10">
                     </div>
                     <div>
                         <label class="text-xs text-green-600 font-bold mb-1 block">PASSWORD_</label>
-                        <div class="flex items-center cmd-prefix">
-                            <input type="password" id="auth-password" required placeholder="********" class="cmd-input bg-transparent border-none p-0 box-shadow-none">
-                        </div>
+                        <input type="password" id="auth-password" required placeholder="********" class="cmd-input">
                     </div>
                     <div id="auth-error" class="text-red-500 text-xs mt-1 hidden thai-text">Error message</div>
                     <div class="flex gap-4 mt-2">
@@ -170,30 +179,14 @@
                     </div>
                 </form>
             </div>
-        </div>
-
-        <!-- 2. DIRECTORY VIEW -->
-        <div id="directory-view" class="w-full max-w-6xl hidden">
-            <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 relative overflow-hidden">
-                <img src="/assets/images.png" style="width: 150px; mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain absolute opacity-20 right-10 top-2 z-0">
-                <div class="text-center z-10">
-                    <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
-                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
-                </div>
-            </header>
-
-            <div class="bg-[#cbcbbf] p-4 md:p-10 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] min-h-[400px]">
-                <div id="tree-container" class="w-full py-4">
-                    <div class="flex items-center justify-center h-40 text-gray-500 font-bold animate-pulse">LOADING DATA...</div>
-                </div>
-            </div>
+            <button onclick="switchView('directory-view')" class="w-full text-center text-sm text-gray-600 font-bold hover:text-gray-900 underline">กลับสู่หน้าหลัก</button>
         </div>
 
         <!-- 3. ADMIN PANEL VIEW -->
         <div id="admin-view" class="w-full max-w-6xl hidden">
             <div class="bg-[#dfdfd5] p-6 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-lg mb-8">
                 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <span class="bg-red-600 w-3 h-3 rounded-full inline-block"></span> ADMIN CONTROL PANEL
+                    <span class="bg-red-600 w-3 h-3 rounded-full inline-block shadow-[0_0_8px_rgba(220,38,38,0.8)]"></span> ADMIN CONTROL PANEL
                 </h2>
                 
                 <div class="bg-[#cbcbbf] p-4 rounded shadow-inner border border-gray-400 mb-6">
@@ -201,21 +194,21 @@
                     <div class="pb-4 border-b border-gray-400 mb-6">
                         <h4 class="font-bold mb-2 thai-text text-sm flex items-center gap-2">
                             <span class="bg-blue-600 w-2 h-2 rounded-full inline-block"></span>
-                            อัปโหลดข้อมูลจากไฟล์ CSV (Bulk Import)
+                            อัปโหลดข้อมูลจากไฟล์ CSV (Google Forms)
                         </h4>
                         <div class="flex gap-2 items-center flex-wrap">
                             <input type="file" id="csv-file" accept=".csv" class="border border-gray-400 p-1 text-sm bg-white rounded cursor-pointer">
                             <button type="button" onclick="importCSV()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0 bg-green-200">IMPORT_CSV</button>
                         </div>
                         <p class="text-xs text-gray-600 mt-2 thai-text">
-                            หัวคอลัมน์ที่รองรับ: <span class="font-mono bg-gray-200 px-1 border border-gray-300">รหัสนักศึกษา</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อ</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">นามสกุล</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ชื่อเล่น</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">ID Line</span>, <span class="font-mono bg-gray-200 px-1 border border-gray-300">Instagram</span>
+                            หัวคอลัมน์ที่รองรับ: รหัสนักศึกษา, ชื่อ, นามสกุล, ชื่อเล่น, ID Line, Instagram
                         </p>
                     </div>
 
                     <!-- Data Table -->
                     <h3 class="font-bold mb-3 thai-text flex items-center gap-2">
                         <span class="bg-yellow-500 w-2 h-2 rounded-full inline-block"></span>
-                        จัดการรายชื่อสมาชิก (Database)
+                        จัดการรายชื่อสมาชิก
                     </h3>
                     <div class="overflow-x-auto bg-white border border-gray-400 rounded">
                         <table class="w-full text-sm text-left text-gray-800 thai-text">
@@ -228,7 +221,7 @@
                                 </tr>
                             </thead>
                             <tbody id="admin-table-body" class="divide-y divide-gray-300">
-                                <!-- Data rows go here -->
+                                <!-- Admin Rows -->
                             </tbody>
                         </table>
                     </div>
@@ -280,21 +273,21 @@
                         <input type="text" id="edit-ig" class="w-full p-2 rounded border border-gray-400 text-sm font-mono">
                     </div>
                 </div>
-                <button type="submit" id="save-edit-btn" class="keycap w-full py-2 mt-2 text-sm font-bold bg-green-200">SAVE_CHANGES</button>
+                <button type="submit" id="save-edit-btn" class="keycap w-full py-2 mt-4 text-sm font-bold bg-green-200">SAVE_CHANGES</button>
             </form>
         </div>
     </div>
 
     <!-- Modal: Profile & Status Update -->
     <div id="profile-modal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
-        <!-- คลิกพื้นหลังเพื่อปิด -->
         <div class="absolute inset-0" onclick="closeProfile()"></div>
-        
         <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white flex flex-col">
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 z-20">X</button>
             
             <div class="p-6 border-b-2 border-gray-400 flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-gray-200 to-transparent rounded-t-xl">
-                <img id="modal-img" src="" alt="Profile" class="w-32 h-32 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300 filter grayscale contrast-125">
+                <!-- Image loading uses async HEIC logic -->
+                <img id="modal-img" src="" alt="Profile" class="w-48 h-48 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300">
+                
                 <h3 id="modal-name" class="thai-text text-2xl font-bold text-gray-800 z-10 text-center leading-tight">Name</h3>
                 <p id="modal-nickname" class="thai-text text-sm text-gray-600 z-10 mb-1 font-bold">Nickname</p>
                 <p id="modal-id" class="text-md font-mono text-gray-600 z-10 mb-2">ID</p>
@@ -302,7 +295,7 @@
                 <div id="modal-position" class="thai-text text-sm bg-gray-800 text-white px-3 py-1 rounded font-bold shadow-inner z-10 tracking-widest uppercase mb-4">POSITION</div>
                 
                 <!-- Social Links -->
-                <div class="flex gap-4 z-10 mb-4 thai-text text-sm bg-white/50 px-4 py-2 rounded border border-gray-300 w-full justify-center">
+                <div class="flex gap-4 z-10 mb-4 thai-text text-sm bg-white/50 px-4 py-2 rounded border border-gray-300 w-full justify-center shadow-inner">
                     <div class="flex flex-col items-center">
                         <span class="font-bold text-xs text-green-700">LINE</span>
                         <span id="modal-line" class="font-mono text-gray-800">-</span>
@@ -314,11 +307,11 @@
                     </div>
                 </div>
 
-                <!-- Status Update Form (IG Style LED box, visible to owner) -->
-                <form id="status-form" onsubmit="updateStatus(event)" class="w-full px-2 hidden z-10 flex-col items-center">
-                    <label class="text-[10px] text-gray-500 font-bold mb-1">STATUS (MAX 30 CHARS)</label>
+                <!-- Status Update Form (IG Style LED box, visible ONLY to logged-in owner or admin) -->
+                <form id="status-form" onsubmit="updateStatus(event)" class="w-full px-2 hidden z-10 flex-col items-center mt-2 p-3 bg-[#cbcbbf] rounded shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)]">
+                    <label class="text-[10px] text-gray-600 font-bold mb-1">UPDATE STATUS (MAX 30 CHARS)</label>
                     <div class="flex gap-2 w-full">
-                        <input type="text" id="status-input" maxlength="30" class="flex-grow p-1.5 px-3 text-sm rounded border border-gray-400 font-mono shadow-inner outline-none focus:border-green-600 bg-white" placeholder="อัปเดตสถานะของคุณ...">
+                        <input type="text" id="status-input" maxlength="30" class="flex-grow p-1.5 px-3 text-sm rounded border border-gray-400 font-mono shadow-inner outline-none focus:border-green-600 bg-white" placeholder="What's on your mind?">
                         <button type="submit" id="status-btn" class="keycap py-1 px-3 !m-0 text-xs font-bold bg-green-200">UPDATE</button>
                     </div>
                 </form>
@@ -326,7 +319,7 @@
         </div>
     </div>
 
-    <!-- Alert Modal -->
+    <!-- Custom Alert Modal -->
     <div id="alert-modal" class="fixed inset-0 modal-bg z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-[#dfdfd5] border-2 border-white rounded-lg shadow-2xl p-6 max-w-sm w-full text-center">
             <h3 class="font-bold mb-2 thai-text text-lg" id="alert-title">แจ้งเตือน</h3>
@@ -340,10 +333,10 @@
     <!-- ----------------------------------------------------------- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Your Firebase config
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
             authDomain: "class-directory-3b8c9.firebaseapp.com",
@@ -354,19 +347,18 @@
             measurementId: "G-NP07FSMQ51"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Security / Path definition 
-        const APP_ID = 'class-directory'; 
+        const APP_ID = 'class-directory-cn25'; 
         const USERS_PATH = `artifacts/${APP_ID}/public/data/users`; 
-
         const ADMIN_ID = '6910616249';
+        
         let currentUser = null;
         let membersData = [];
         let currentProfileId = null;
+        let isDataSubscribed = false;
 
         // Custom Alert Wrapper
         window.showAlert = function(title, msg) {
@@ -375,14 +367,62 @@
             document.getElementById('alert-modal').classList.remove('hidden');
         }
 
+        // ==========================================
+        // UNIVERSAL IMAGE EXTENSION & HEIC LOGIC
+        // ==========================================
+        window.loadProfileImage = async function(imgElement, studentId) {
+            const extensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'heic'];
+            const fallbackSrc = 'https://placehold.co/200x200/d1d1c8/333333?text=NO+IMAGE';
+            
+            // Prevent multiple parallel executions for the same image
+            if (imgElement.dataset.loading === "true") return;
+            imgElement.dataset.loading = "true";
+
+            for (let i = 0; i < extensions.length; i++) {
+                const ext = extensions[i];
+                const url = `assets/${studentId}.${ext}`;
+
+                if (ext === 'heic') {
+                    try {
+                        const response = await fetch(url);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            if (blob.type.includes('heic') || blob.type === 'application/octet-stream') {
+                                const convertedBlob = await heic2any({ blob, toType: "image/jpeg" });
+                                imgElement.src = URL.createObjectURL(convertedBlob);
+                                imgElement.dataset.loading = "false";
+                                return; // Success!
+                            }
+                        }
+                    } catch (e) { console.warn(`HEIC conversion failed for ${studentId}`, e); }
+                } else {
+                    // Test standard image format using a Promise
+                    const isSuccess = await new Promise((resolve) => {
+                        const tempImg = new Image();
+                        tempImg.onload = () => resolve(true);
+                        tempImg.onerror = () => resolve(false);
+                        tempImg.src = url;
+                    });
+
+                    if (isSuccess) {
+                        imgElement.src = url;
+                        imgElement.dataset.loading = "false";
+                        return; // Success!
+                    }
+                }
+            }
+            
+            // If all failed
+            imgElement.src = fallbackSrc;
+            imgElement.dataset.loading = "false";
+        }
+
         window.switchView = function(viewId) {
             ['auth-view', 'directory-view', 'admin-view'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
             document.getElementById(viewId).classList.remove('hidden');
-            if(viewId === 'admin-view') {
-                renderAdminTable();
-            }
+            if(viewId === 'admin-view') renderAdminTable();
         }
 
         // ====== AUTHENTICATION LOGIC ======
@@ -409,10 +449,11 @@
             try {
                 if (isRegister) {
                     await createUserWithEmailAndPassword(auth, emailFormat, passInput);
-                    showAlert("สำเร็จ", "ลงทะเบียนเรียบร้อยแล้ว ระบบกำลังเข้าสู่ระบบอัตโนมัติ...");
+                    showAlert("สำเร็จ", "ลงทะเบียนเรียบร้อยแล้ว ระบบกำลังเข้าสู่ระบบ...");
                 } else {
                     await signInWithEmailAndPassword(auth, emailFormat, passInput);
                 }
+                // onAuthStateChanged will handle the rest
             } catch (error) {
                 console.error("Auth Error:", error);
                 let errorMsg = error.message;
@@ -428,60 +469,86 @@
             }
         }
 
-        window.logout = function() {
-            signOut(auth);
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                // Will automatically fallback to Anonymous in onAuthStateChanged
+            } catch(e) { console.error("Logout error", e); }
         }
 
-        onAuthStateChanged(auth, (user) => {
+        // Handle Public Access vs Logged In
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const studentId = user.email.split('@')[0]; 
+                const isAnon = user.isAnonymous;
+                const email = user.email || '';
+                const studentId = isAnon ? null : email.split('@')[0]; 
+                
                 currentUser = {
                     uid: user.uid,
                     studentId: studentId,
-                    isAdmin: (studentId === ADMIN_ID)
+                    isAdmin: (studentId === ADMIN_ID),
+                    isAnon: isAnon
                 };
                 
-                document.getElementById('navbar').style.display = 'flex';
-                if (currentUser.isAdmin) {
-                    document.getElementById('admin-nav-btn').classList.remove('hidden');
+                // Update Navbar UI
+                if (!isAnon) {
+                    document.getElementById('login-nav-btn').classList.add('hidden');
+                    document.getElementById('logout-nav-btn').classList.remove('hidden');
+                    if (currentUser.isAdmin) document.getElementById('admin-nav-btn').classList.remove('hidden');
+                    switchView('directory-view');
+                    document.getElementById('auth-form').reset();
                 } else {
+                    // Anonymous User (Public view)
+                    document.getElementById('login-nav-btn').classList.remove('hidden');
+                    document.getElementById('logout-nav-btn').classList.add('hidden');
                     document.getElementById('admin-nav-btn').classList.add('hidden');
                 }
                 
-                switchView('directory-view');
-                document.getElementById('auth-form').reset();
+                // Start listening to data if not already
+                if (!isDataSubscribed) subscribeToData();
                 
-                loadMembersData();
             } else {
+                // If logged out completely, sign in anonymously to allow reading public data
                 currentUser = null;
-                document.getElementById('navbar').style.display = 'none';
-                switchView('auth-view');
+                try {
+                    await signInAnonymously(auth);
+                } catch (error) {
+                    console.error("Anonymous auth failed:", error);
+                }
             }
         });
 
-        // ====== FIRESTORE LOGIC ======
-
-        async function loadMembersData() {
-            if (!currentUser) return;
-            try {
-                const usersColRef = collection(db, USERS_PATH);
-                const snapshot = await getDocs(usersColRef);
+        // ====== FIRESTORE LOGIC (REAL-TIME) ======
+        function subscribeToData() {
+            isDataSubscribed = true;
+            const usersColRef = collection(db, USERS_PATH);
+            
+            onSnapshot(usersColRef, (snapshot) => {
                 membersData = [];
-                snapshot.forEach(docSnap => {
-                    membersData.push({ ...docSnap.data() });
-                });
+                snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
                 renderTree();
                 if(!document.getElementById('admin-view').classList.contains('hidden')) {
                     renderAdminTable();
                 }
-            } catch (error) {
-                console.error("Error fetching users:", error);
+                
+                // Update open profile modal if it's currently open
+                if (currentProfileId) {
+                    const updatedMember = membersData.find(m => m.studentId === currentProfileId);
+                    if (updatedMember) {
+                        const statusInput = document.getElementById('status-input');
+                        if(statusInput && statusInput.value !== updatedMember.status && document.activeElement !== statusInput) {
+                            statusInput.value = updatedMember.status || '';
+                        }
+                    }
+                }
+            }, (error) => {
+                console.error("Realtime Data Error:", error);
                 document.getElementById('tree-container').innerHTML = 
                     `<div class="text-red-500 font-bold text-center py-10">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-            }
+            });
         }
 
-        // ระบบ Import CSV
+        // ระบบ Import CSV (Admin)
         window.importCSV = function() {
             if (!currentUser || !currentUser.isAdmin) return;
             const fileInput = document.getElementById('csv-file');
@@ -499,57 +566,39 @@
                 header: true,
                 skipEmptyLines: true,
                 complete: async function(results) {
-                    let successCount = 0;
-                    let skipCount = 0;
+                    let successCount = 0, skipCount = 0;
 
                     for (const row of results.data) {
                         const studentId = row['รหัสนักศึกษา'] ? String(row['รหัสนักศึกษา']).trim() : '';
-                        
                         if (studentId.length === 10) {
                             try {
                                 const userDocRef = doc(db, USERS_PATH, studentId);
                                 const snap = await getDoc(userDocRef);
-                                
                                 if (!snap.exists()) {
-                                    const firstName = row['ชื่อ'] ? String(row['ชื่อ']).trim() : '';
-                                    const lastName = row['นามสกุล'] ? String(row['นามสกุล']).trim() : '';
-                                    const nickname = row['ชื่อเล่น'] ? String(row['ชื่อเล่น']).trim() : '';
-                                    const lineId = row['ID Line'] ? String(row['ID Line']).trim() : '';
-                                    const instagram = row['Instagram'] ? String(row['Instagram']).trim() : '';
-
                                     await setDoc(userDocRef, {
                                         studentId: studentId,
-                                        firstName: firstName,
-                                        lastName: lastName,
-                                        nickname: nickname,
-                                        lineId: lineId,
-                                        instagram: instagram,
-                                        position: 'สมาชิก', // ตำแหน่ง Default
+                                        firstName: (row['ชื่อ'] || '').trim(),
+                                        lastName: (row['นามสกุล'] || '').trim(),
+                                        nickname: (row['ชื่อเล่น'] || '').trim(),
+                                        lineId: (row['ID Line'] || '').trim(),
+                                        instagram: (row['Instagram'] || '').trim(),
+                                        position: 'สมาชิก',
                                         status: '',
                                         importedAt: new Date().toISOString()
                                     });
                                     successCount++;
-                                } else {
-                                    skipCount++;
-                                }
-                            } catch (err) {
-                                console.error(`Import error on row ${studentId}:`, err);
-                                skipCount++;
-                            }
-                        } else {
-                            skipCount++; 
-                        }
+                                } else skipCount++;
+                            } catch (err) { skipCount++; }
+                        } else skipCount++; 
                     }
                     
                     fileInput.value = "";
                     btn.innerText = "IMPORT_CSV";
                     btn.disabled = false;
                     showAlert("นำเข้าข้อมูลสำเร็จ", `เพิ่มข้อมูลใหม่: ${successCount} รายการ\nข้ามข้อมูล (มีอยู่แล้ว/ผิดรูปแบบ): ${skipCount} รายการ`);
-                    loadMembersData(); // Reload all data
                 },
-                error: function(err) {
+                error: function() {
                     showAlert("ข้อผิดพลาด", "ไม่สามารถอ่านไฟล์ CSV ได้");
-                    console.error("PapaParse error:", err);
                     btn.innerText = "IMPORT_CSV";
                     btn.disabled = false;
                 }
@@ -572,10 +621,10 @@
                 tr.className = "hover:bg-gray-100 transition-colors";
                 tr.innerHTML = `
                     <td class="px-4 py-3 font-mono">${member.studentId}</td>
-                    <td class="px-4 py-3">${fullName || 'ไม่ระบุชื่อ'} ${member.nickname ? `(${member.nickname})` : ''}</td>
+                    <td class="px-4 py-3">${fullName} ${member.nickname ? `(${member.nickname})` : ''}</td>
                     <td class="px-4 py-3">${member.position}</td>
                     <td class="px-4 py-3">
-                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold transition-colors">EDIT</button>
+                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold shadow">EDIT</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -597,9 +646,7 @@
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
-        window.closeEditModal = function() {
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
+        window.closeEditModal = () => document.getElementById('edit-modal').classList.add('hidden');
 
         window.saveUserEdit = async function(e) {
             e.preventDefault();
@@ -620,17 +667,7 @@
             };
 
             try {
-                const userDocRef = doc(db, USERS_PATH, studentId);
-                await updateDoc(userDocRef, updateData);
-                
-                // Update local data
-                const memberIndex = membersData.findIndex(m => m.studentId === studentId);
-                if (memberIndex !== -1) {
-                    membersData[memberIndex] = { ...membersData[memberIndex], ...updateData };
-                }
-                
-                renderAdminTable();
-                renderTree();
+                await updateDoc(doc(db, USERS_PATH, studentId), updateData);
                 closeEditModal();
                 showAlert("สำเร็จ", "อัปเดตข้อมูลสมาชิกเรียบร้อยแล้ว");
             } catch (error) {
@@ -645,63 +682,62 @@
         // ====== LAYOUT RENDERING ======
         function renderTree() {
             const container = document.getElementById('tree-container');
-            
             if (membersData.length === 0) {
-                container.innerHTML = `<div class="flex items-center justify-center h-40 text-gray-500 font-bold">ไม่มีข้อมูลในระบบ...<br>แอดมินกรุณาอัปโหลดไฟล์ CSV</div>`;
+                container.innerHTML = `<div class="flex items-center justify-center h-40 text-gray-500 font-bold text-center">NO DATA FOUND.<br>ADMIN PLEASE IMPORT DATABASE.</div>`;
                 return;
             }
 
             const presidents = membersData.filter(m => m.position === 'ประธานรุ่น');
             const vps = membersData.filter(m => m.position === 'รองประธาน');
-            const members = membersData.filter(m => m.position === 'สมาชิก');
+            const members = membersData.filter(m => m.position === 'สมาชิก' || (m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน'));
 
-            // ใช้ Flex Column แบบไม่เลื่อนข้าง (Vertical Flow)
             let html = `<div class="flex flex-col items-center gap-10 w-full">`;
             
-            // 1. ระดับประธาน
+            // 1. President
             if (presidents.length > 0) {
-                html += `<div class="flex justify-center w-full">
+                html += `<div class="flex justify-center w-full z-10">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
 
-            // 2. ระดับรองประธาน
+            // 2. Vice President
             if (vps.length > 0) {
-                html += `<div class="flex justify-center w-full">
+                html += `<div class="flex justify-center w-full z-10">
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
 
-            // 3. ระดับสมาชิก (กางออกปัดบรรทัด Flex Wrap แนวตั้ง-แนวนอน)
+            // 3. Members
             if (members.length > 0) {
-                html += `<div class="flex flex-wrap justify-center gap-6 w-full max-w-5xl">`;
-                members.forEach(m => {
-                    html += buildKeycapNode(m, 'normal');
-                });
+                html += `<div class="flex flex-wrap justify-center gap-6 w-full z-10 px-2">`;
+                members.forEach(m => html += buildKeycapNode(m, 'normal'));
                 html += `</div>`;
             }
 
             html += `</div>`;
             container.innerHTML = html;
+            
+            // Trigger image async loads after rendering HTML
+            membersData.forEach(m => {
+                const img = document.getElementById(`img-node-${m.studentId}`);
+                if(img) loadProfileImage(img, m.studentId);
+            });
         }
 
-        // Component: ปุ่มรายบุคคล
         window.buildKeycapNode = function(member, type = 'normal') {
-            // FIX: เปลี่ยนสกุลไฟล์ภาพเป็น .jpeg ตามคำขอ
-            const imgUrl = `/assets/${member.studentId}.jpeg`;
             const isPres = type === 'president';
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || member.name || 'ไม่ระบุชื่อ';
             
             return `
-                <div class="keycap ${isPres ? 'president' : ''} p-5 flex flex-col items-center w-[250px]" onclick="openProfile('${member.studentId}')">
-                    <img src="${imgUrl}" onerror="this.onerror=null; this.src='/assets/images.png';" alt="Profile" class="profile-img mb-3 shadow-inner">
+                <div class="keycap ${isPres ? 'president' : ''} p-4 flex flex-col items-center w-[250px]" onclick="openProfile('${member.studentId}')">
+                    <img id="img-node-${member.studentId}" src="https://placehold.co/200x200/d1d1c8/333333?text=LOADING..." alt="Profile" class="profile-img mb-3">
                     <p class="thai-text text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${displayName}</p>
                     <div class="w-full mt-2 pt-2 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
-                        <p class="thai-text text-xs text-gray-600 font-bold text-center">${member.position}</p>
+                        <p class="thai-text text-sm text-gray-600 font-bold text-center">${member.position}</p>
                     </div>
                     ${member.status 
-                        ? `<div class="mt-3 text-xs led-status px-2 py-1 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis border border-[#555] shadow-inner font-mono text-center" title="${member.status}">${member.status}</div>` 
+                        ? `<div class="mt-3 text-xs led-status px-2 py-1.5 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis text-center" title="${member.status}">${member.status}</div>` 
                         : ''}
                 </div>
             `;
@@ -715,7 +751,7 @@
             currentProfileId = studentId;
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             
-            document.getElementById('modal-name').innerText = fullName || member.name || 'ไม่ระบุชื่อ';
+            document.getElementById('modal-name').innerText = fullName || 'ไม่ระบุชื่อ';
             document.getElementById('modal-nickname').innerText = member.nickname ? `( ${member.nickname} )` : '';
             document.getElementById('modal-id').innerText = member.studentId;
             document.getElementById('modal-position').innerText = member.position;
@@ -723,16 +759,17 @@
             document.getElementById('modal-line').innerText = member.lineId || '-';
             document.getElementById('modal-ig').innerText = member.instagram || '-';
 
-            // Image Handler (.jpeg)
-            const img = document.getElementById('modal-img');
-            img.src = `/assets/${member.studentId}.jpeg`;
-            img.onerror = () => { img.src = `/assets/images.png`; };
+            // Async load image into modal
+            const modalImg = document.getElementById('modal-img');
+            modalImg.src = 'https://placehold.co/200x200/d1d1c8/333333?text=LOADING...';
+            loadProfileImage(modalImg, member.studentId);
 
-            // Control form visibility (เฉพาะเจ้าของโปรไฟล์)
+            // Access Control for Status Form
             const statusForm = document.getElementById('status-form');
             const statusInput = document.getElementById('status-input');
             
-            if (currentUser && currentUser.studentId === studentId) {
+            // Only logged-in owners or admins can edit status
+            if (currentUser && !currentUser.isAnon && (currentUser.studentId === studentId || currentUser.isAdmin)) {
                 statusForm.classList.remove('hidden');
                 statusForm.classList.add('flex');
                 statusInput.value = member.status || '';
@@ -749,11 +786,12 @@
             currentProfileId = null;
         }
 
-        // บันทึกสเตตัสลงฐานข้อมูลส่วนกลาง (Firestore)
         window.updateStatus = async function(e) {
             e.preventDefault();
-            if (!currentUser || !currentProfileId) return;
-            if (currentUser.studentId !== currentProfileId) return;
+            if (!currentUser || currentUser.isAnon || !currentProfileId) return;
+            
+            // Validate ownership/admin
+            if (currentUser.studentId !== currentProfileId && !currentUser.isAdmin) return; 
 
             const statusVal = document.getElementById('status-input').value.trim();
             const btn = document.getElementById('status-btn');
@@ -763,15 +801,9 @@
             btn.disabled = true;
 
             try {
-                const userDocRef = doc(db, USERS_PATH, currentProfileId);
-                await updateDoc(userDocRef, {
-                    status: statusVal
-                });
-                
-                const memberIndex = membersData.findIndex(m => m.studentId === currentProfileId);
-                if (memberIndex !== -1) membersData[memberIndex].status = statusVal;
-                
-                renderTree();
+                await updateDoc(doc(db, USERS_PATH, currentProfileId), { status: statusVal });
+                // Database onSnapshot will automatically re-render the view
+                showAlert("สำเร็จ", "อัปเดตสเตตัสส่วนตัวเรียบร้อยแล้ว");
                 closeProfile();
             } catch (error) {
                 console.error("Update Status Error:", error);
