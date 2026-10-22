@@ -119,13 +119,13 @@
 <body class="min-h-screen flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
-        <div class="flex items-center gap-3 md:gap-5 cursor-pointer" onclick="switchView('directory-view')">
+    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
+        <div class="flex items-center gap-2 md:gap-5 cursor-pointer" onclick="switchView('directory-view')">
             <!-- โลโก้ธรรมศาสตร์ -->
-            <img src="assets/images.png" style="mix-blend-mode: multiply; height: 50px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain md:h-[60px]">
-            <!-- โลโก้ TSE (ปรับขนาดให้สมส่วนกับ TU) -->
-            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 55px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[65px]">
-            <span class="font-bold tracking-tighter hidden lg:block text-xl ml-2">CLASS DIRECTORY CN25</span>
+            <img src="assets/images.png" style="mix-blend-mode: multiply; height: 60px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain md:h-[75px]">
+            <!-- โลโก้ TSE (ขยายขนาดขึ้นมากเพื่อให้สมส่วนกับตราธรรมศาสตร์) -->
+            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 90px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[115px] -ml-2 md:-ml-4">
+            <span class="font-bold tracking-tighter hidden xl:block text-2xl ml-2">CLASS DIRECTORY CN25</span>
         </div>
         <div class="flex gap-2 sm:gap-4 items-center">
             <button onclick="switchView('directory-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold">DIRECTORY</button>
@@ -667,13 +667,13 @@
             
             // ประธาน
             if (presidents.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-sm px-2">
+                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
             // รองประธาน
             if (vps.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-sm px-2">
+                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
@@ -726,7 +726,7 @@
             modalImg.src = `assets/${member.studentId}.jpeg`;
 
             const statusForm = document.getElementById('status-form');
-            // เห็นฟอร์มสเตตัสเฉพาะตอนล็อกอินเป็นตัวเองเท่านั้น แอดมินก็แก้ไม่ได้
+            // เห็นฟอร์มสเตตัสเฉพาะตอนล็อกอินเป็นตัวเองเท่านั้น
             if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden'); statusForm.classList.add('flex');
                 document.getElementById('status-input').value = member.status || '';
