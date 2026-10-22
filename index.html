@@ -74,7 +74,7 @@
             border-radius: 4px;
             object-fit: cover;
             width: 100%;
-            height: 220px; 
+            aspect-ratio: 3/4; 
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.2s ease;
         }
@@ -188,6 +188,29 @@
                 </h2>
                 
                 <div class="bg-[#cbcbbf] p-4 rounded shadow-inner border border-gray-400 mb-6">
+                    
+                    <!-- Manual Add Section -->
+                    <div class="pb-4 border-b border-gray-400 mb-6">
+                        <h4 class="font-bold mb-3 thai-text text-sm flex items-center gap-2">
+                            <span class="bg-green-600 w-2 h-2 rounded-full inline-block"></span>
+                            เพิ่มสมาชิกใหม่ (กรอกข้อมูลเอง)
+                        </h4>
+                        <form id="manual-add-form" onsubmit="addMemberManual(event)" class="grid grid-cols-2 md:grid-cols-4 gap-3 thai-text">
+                            <input type="text" id="add-id" placeholder="รหัสนักศึกษา 10 หลัก" required pattern="[0-9]{10}" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
+                            <input type="text" id="add-firstname" placeholder="ชื่อ" required class="border border-gray-400 p-2 text-sm bg-white rounded">
+                            <input type="text" id="add-lastname" placeholder="นามสกุล" class="border border-gray-400 p-2 text-sm bg-white rounded">
+                            <input type="text" id="add-nickname" placeholder="ชื่อเล่น" class="border border-gray-400 p-2 text-sm bg-white rounded">
+                            <select id="add-position" class="border border-gray-400 p-2 text-sm bg-white rounded">
+                                <option value="สมาชิก">สมาชิก</option>
+                                <option value="รองประธาน">รองประธาน</option>
+                                <option value="ประธานรุ่น">ประธานรุ่น</option>
+                            </select>
+                            <input type="text" id="add-line" placeholder="ID Line" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
+                            <input type="text" id="add-ig" placeholder="Instagram" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
+                            <button type="submit" id="manual-add-btn" class="keycap py-1 px-4 text-xs font-bold bg-green-200">ADD_MEMBER</button>
+                        </form>
+                    </div>
+
                     <!-- CSV Import Section -->
                     <div class="pb-4 border-b border-gray-400 mb-6">
                         <h4 class="font-bold mb-2 thai-text text-sm flex items-center gap-2">
@@ -555,6 +578,52 @@
             });
         };
 
+        // ระบบ Add Manual (Admin)
+        window.addMemberManual = async function(e) {
+            e.preventDefault();
+            if (!currentUser || !currentUser.isAdmin) return;
+
+            const studentId = document.getElementById('add-id').value.trim();
+            const btn = document.getElementById('manual-add-btn');
+            
+            if (studentId.length !== 10) {
+                showAlert("ข้อผิดพลาด", "รหัสนักศึกษาต้องมี 10 หลัก");
+                return;
+            }
+
+            btn.innerText = "...";
+            btn.disabled = true;
+
+            try {
+                const userDocRef = doc(db, USERS_PATH, studentId);
+                const snap = await getDoc(userDocRef);
+                
+                if (snap.exists()) {
+                    showAlert("ข้อมูลซ้ำ", `รหัสนักศึกษา ${studentId} มีอยู่ในระบบแล้ว`);
+                } else {
+                    await setDoc(userDocRef, {
+                        studentId: studentId,
+                        firstName: document.getElementById('add-firstname').value.trim(),
+                        lastName: document.getElementById('add-lastname').value.trim(),
+                        nickname: document.getElementById('add-nickname').value.trim(),
+                        lineId: document.getElementById('add-line').value.trim(),
+                        instagram: document.getElementById('add-ig').value.trim(),
+                        position: document.getElementById('add-position').value,
+                        status: '',
+                        importedAt: new Date().toISOString()
+                    });
+                    showAlert("สำเร็จ", `เพิ่มรายชื่อ ${studentId} เรียบร้อยแล้ว`);
+                    document.getElementById('manual-add-form').reset();
+                }
+            } catch (err) {
+                console.error("Add manual error:", err);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
+            } finally {
+                btn.innerText = "ADD_MEMBER";
+                btn.disabled = false;
+            }
+        };
+
         // ====== ADMIN TABLE & EDITING ======
         window.renderAdminTable = function() {
             const tbody = document.getElementById('admin-table-body');
@@ -641,25 +710,29 @@
             const vps = membersData.filter(m => m.position === 'รองประธาน');
             const members = membersData.filter(m => m.position === 'สมาชิก' || (m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน'));
 
-            let html = `<div class="flex flex-col items-center gap-10 w-full">`;
+            let html = `<div class="flex flex-col items-center gap-4 md:gap-10 w-full">`;
             
             // 1. President
             if (presidents.length > 0) {
-                html += `<div class="flex justify-center w-full z-10">
-                            ${buildKeycapNode(presidents[0], 'president')}
+                html += `<div class="flex justify-center w-full z-10 px-1">
+                            <div class="w-1/3 min-w-[110px] max-w-[250px]">
+                                ${buildKeycapNode(presidents[0], 'president')}
+                            </div>
                          </div>`;
             }
 
             // 2. Vice President
             if (vps.length > 0) {
-                html += `<div class="flex justify-center w-full z-10">
-                            ${buildKeycapNode(vps[0], 'normal')}
+                html += `<div class="flex justify-center w-full z-10 px-1">
+                            <div class="w-1/3 min-w-[110px] max-w-[250px]">
+                                ${buildKeycapNode(vps[0], 'normal')}
+                            </div>
                          </div>`;
             }
 
-            // 3. Members
+            // 3. Members (แสดง 3 คอลัมน์เสมอ)
             if (members.length > 0) {
-                html += `<div class="flex flex-wrap justify-center gap-6 w-full z-10 px-2">`;
+                html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
                 html += `</div>`;
             }
@@ -673,20 +746,20 @@
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || member.name || 'ไม่ระบุชื่อ';
             
-            // Start with .jpeg natively. If it fails, fallback sequentially via the onerror handler.
+            // ใช้ Tailwind Responsive classes (เช่น md:p-4) เพื่อย่อขนาดบนมือถือไม่ให้ล้น
             return `
-                <div class="keycap ${isPres ? 'president' : ''} p-4 flex flex-col items-center w-[250px]" onclick="openProfile('${member.studentId}')">
+                <div class="keycap ${isPres ? 'president' : ''} p-1.5 sm:p-2 md:p-4 flex flex-col items-center w-full" onclick="openProfile('${member.studentId}')">
                     <img id="img-node-${member.studentId}" 
                          src="assets/${member.studentId}.jpeg" 
                          onerror="window.handleFallbackImg(this, '${member.studentId}', 0)" 
                          alt="Profile" 
-                         class="profile-img mb-3 bg-gray-300">
-                    <p class="thai-text text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${displayName}</p>
-                    <div class="w-full mt-2 pt-2 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
-                        <p class="thai-text text-sm text-gray-600 font-bold text-center">${member.position}</p>
+                         class="profile-img mb-1 md:mb-3 bg-gray-300">
+                    <p class="thai-text text-[8px] sm:text-[10px] md:text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${displayName}</p>
+                    <div class="w-full mt-1 md:mt-2 pt-1 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
+                        <p class="thai-text text-[6px] sm:text-[8px] md:text-sm text-gray-600 font-bold text-center">${member.position}</p>
                     </div>
                     ${member.status 
-                        ? `<div class="mt-3 text-xs led-status px-2 py-1.5 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis text-center" title="${member.status}">${member.status}</div>` 
+                        ? `<div class="mt-1 md:mt-3 text-[6px] sm:text-[8px] md:text-xs led-status px-1 md:px-2 py-0.5 md:py-1.5 rounded w-full overflow-hidden whitespace-nowrap text-ellipsis text-center" title="${member.status}">${member.status}</div>` 
                         : ''}
                 </div>
             `;
@@ -717,8 +790,8 @@
             const statusForm = document.getElementById('status-form');
             const statusInput = document.getElementById('status-input');
             
-            // Only logged-in owners or admins can edit status
-            if (currentUser && !currentUser.isAnon && (currentUser.studentId === studentId || currentUser.isAdmin)) {
+            // Only logged-in owners can edit status (Admins can no longer edit others' status)
+            if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden');
                 statusForm.classList.add('flex');
                 statusInput.value = member.status || '';
@@ -739,8 +812,11 @@
             e.preventDefault();
             if (!currentUser || !window.currentProfileId) return;
             
-            // Validate ownership/admin
-            if (currentUser.studentId !== window.currentProfileId && !currentUser.isAdmin) return; 
+            // Validate ownership (Only owner can update status)
+            if (currentUser.studentId !== window.currentProfileId) {
+                showAlert("ปฏิเสธการเข้าถึง", "คุณสามารถแก้ไขได้เฉพาะสเตตัสของตนเองเท่านั้น");
+                return; 
+            }
 
             const statusVal = document.getElementById('status-input').value.trim();
             const btn = document.getElementById('status-btn');
