@@ -309,6 +309,40 @@
         </div>
     </div>
 
+    <!-- Modal: Profile View (เพิ่มใหม่ กล่องดูข้อมูลเพื่อน) -->
+    <div id="profile-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
+            
+            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#b5b5a6] rounded mb-4 bg-gray-300 shadow-inner">
+            
+            <h2 id="modal-name" class="thai-text text-xl font-bold text-gray-800 text-center w-full"></h2>
+            <p id="modal-nickname" class="thai-text text-sm text-gray-600 font-bold mb-3"></p>
+            
+            <div class="bg-[#cbcbbf] w-full p-4 rounded shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)] border border-gray-400 mb-4 thai-text text-sm flex flex-col gap-2">
+                <div class="flex justify-between border-b border-gray-400 pb-1">
+                    <span class="font-bold text-gray-700">ID:</span> <span id="modal-id" class="font-mono text-gray-900"></span>
+                </div>
+                <div class="flex justify-between border-b border-gray-400 pb-1">
+                    <span class="font-bold text-gray-700">ตำแหน่ง:</span> <span id="modal-position" class="text-gray-900"></span>
+                </div>
+                <div class="flex justify-between border-b border-gray-400 pb-1">
+                    <span class="font-bold text-gray-700">LINE:</span> <span id="modal-line" class="font-mono text-blue-700 font-bold"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-bold text-gray-700">IG:</span> <span id="modal-ig" class="font-mono text-pink-700 font-bold"></span>
+                </div>
+            </div>
+
+            <!-- Status Form (โชว์เฉพาะเจ้าของ) -->
+            <form id="status-form" onsubmit="updateStatus(event)" class="w-full hidden flex-col gap-2">
+                <label class="thai-text text-xs font-bold text-gray-700">อัปเดตสเตตัสส่วนตัว (LED Display)</label>
+                <input type="text" id="status-input" class="cmd-input !py-2 !text-sm" placeholder="เช่น เหนื่อยครับสมาชิก (สูงสุด 30 ตัว)" maxlength="30">
+                <button type="submit" id="status-btn" class="keycap py-2 text-sm font-bold bg-green-200 w-full mt-1">UPDATE_STATUS</button>
+            </form>
+        </div>
+    </div>
+
     <!-- ----------------------------------------------------------- -->
     <!-- JAVASCRIPT & FIREBASE INTEGRATION -->
     <!-- ----------------------------------------------------------- -->
