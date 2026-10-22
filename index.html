@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPE TU Alumni - Organizational Chart</title>
+    <title>CPE TU Alumni - Directory System</title>
     <!-- โหลด Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- โหลดฟอนต์ IBM Plex Mono และ Sarabun -->
@@ -17,6 +17,8 @@
             --text-color: #333333;
             --line-color: #8e8e82;
             --shadow-base: #a3a39b;
+            --terminal-bg: #1a1a1a;
+            --terminal-text: #4ade80; /* Green 400 */
         }
 
         body {
@@ -38,7 +40,6 @@
             background: linear-gradient(180deg, #f5f5f0 0%, #e0e0d5 100%);
             border: 1px solid #c7c7be;
             border-radius: 8px;
-            /* สร้างมิติความหนาแบบปุ่ม Mechanical */
             box-shadow: 
                 -1px -1px 2px rgba(255, 255, 255, 0.8) inset,
                 1px 1px 2px rgba(0, 0, 0, 0.1) inset,
@@ -48,12 +49,9 @@
             cursor: pointer;
             position: relative;
             transform: translateY(0);
-            width: 160px;
-            margin: 0 auto;
             z-index: 10;
         }
 
-        /* เอฟเฟกต์ตอนกดปุ่ม */
         .keycap:active {
             transform: translateY(4px);
             box-shadow: 
@@ -63,24 +61,44 @@
                 0px 3px 5px rgba(0, 0, 0, 0.3);
         }
 
-        /* ปุ่มสีเข้มสำหรับตำแหน่งสำคัญ (เช่น ประธาน) */
         .keycap.president {
             background: linear-gradient(180deg, #dbdbd2 0%, #c4c4b9 100%);
             border-color: #b5b5a6;
         }
 
-        /* รูปโปรไฟล์ภายในปุ่ม */
         .profile-img {
             filter: grayscale(100%) contrast(120%);
             border: 2px solid #b5b5a6;
             background-color: #d1d1c8;
             border-radius: 4px;
+            object-fit: cover;
         }
         .keycap:hover .profile-img {
             filter: grayscale(20%) contrast(110%);
         }
 
-        /* --- สไตล์ของแผนผังต้นไม้ (CSS Tree) --- */
+        /* --- Terminal Inputs --- */
+        .cmd-input {
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            font-family: 'IBM Plex Mono', monospace;
+            border: 2px solid #555;
+            border-radius: 4px;
+            padding: 8px 12px;
+            width: 100%;
+            outline: none;
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .cmd-input:focus {
+            border-color: var(--terminal-text);
+        }
+        .cmd-prefix::before {
+            content: "C:\\>";
+            margin-right: 8px;
+            color: var(--terminal-text);
+        }
+
+        /* --- แผนผังต้นไม้ --- */
         .org-tree {
             display: flex;
             justify-content: center;
@@ -107,7 +125,6 @@
             align-items: center;
         }
 
-        /* เส้นเชื่อมต่อ (Connectors) */
         .org-tree li::before, .org-tree li::after {
             content: '';
             position: absolute;
@@ -118,32 +135,17 @@
             height: 20px;
             z-index: 1;
         }
-
         .org-tree li::after {
             right: auto;
             left: 50%;
             border-left: 3px solid var(--line-color);
         }
-
-        /* ซ่อนเส้นสำหรับโหนดที่ไม่มีพี่น้อง */
         .org-tree li:only-child::after, .org-tree li:only-child::before {
             display: none;
         }
-        .org-tree li:only-child {
-            padding-top: 0;
-        }
-
-        /* ลบเส้นที่ไม่จำเป็นซ้ายสุด-ขวาสุด */
-        .org-tree li:first-child::before, .org-tree li:last-child::after {
-            border: 0 none;
-        }
-
-        /* วาดเส้นมุมฉาก */
-        .org-tree li:last-child::before {
-            border-right: 3px solid var(--line-color);
-        }
-
-        /* เส้นลากลงมาจากโหนดแม่ */
+        .org-tree li:only-child { padding-top: 0; }
+        .org-tree li:first-child::before, .org-tree li:last-child::after { border: 0 none; }
+        .org-tree li:last-child::before { border-right: 3px solid var(--line-color); }
         .org-tree ul ul::before {
             content: '';
             position: absolute;
@@ -156,141 +158,600 @@
             z-index: 1;
         }
 
-        /* ซ่อน scrollbar สำหรับคอนเทนเนอร์ของ tree */
-        .org-tree::-webkit-scrollbar {
-            height: 12px;
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #dcdcca; }
+        ::-webkit-scrollbar-thumb { background: #a3a39b; border-radius: 4px; }
+
+        /* Modal Background */
+        .modal-bg {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
         }
-        .org-tree::-webkit-scrollbar-track {
-            background: #dcdcca;
-            border-radius: 6px;
-        }
-        .org-tree::-webkit-scrollbar-thumb {
-            background: #a3a39b;
-            border-radius: 6px;
-            border: 2px solid #dcdcca;
+        
+        /* Message Scroll Area */
+        .message-board {
+            scrollbar-width: thin;
         }
     </style>
 </head>
-<body class="min-h-screen py-10 px-4 sm:px-8">
+<body class="min-h-screen flex flex-col">
 
-    <div class="max-w-6xl mx-auto">
-        
-        <!-- Header -->
-        <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-12 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-gray-400 via-gray-200 to-gray-400 opacity-50"></div>
-            
-            <div class="w-24 h-24 bg-white p-1 rounded-full shadow-inner border-4 border-[#b5b5a6] mb-4 z-10">
-                <img src="images.png" alt="TU Logo" class="w-full h-full object-contain rounded-full">
-            </div>
-            
-            <div class="text-center z-10">
-                <h1 class="text-3xl md:text-4xl font-bold tracking-tighter text-[#222]">CPE TU ALUMNI</h1>
-                <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ผังองค์กรทำเนียบรุ่น</h2>
-                <div class="mt-4 bg-[#1a1a1a] text-[#d1d1c8] px-4 py-1 inline-block rounded text-xs font-bold border-2 border-gray-600 shadow-inner tracking-widest">
-                    SYSTEM_ORG_CHART.EXE
+    <!-- Navbar -->
+    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar" style="display: none;">
+        <div class="flex items-center gap-4">
+            <img src="images_2.png" alt="TU Logo" class="w-10 h-10 object-contain">
+            <span class="font-bold tracking-tighter hidden sm:block">SYSTEM.EXE</span>
+        </div>
+        <div class="flex gap-2 sm:gap-4">
+            <button onclick="switchView('directory-view')" class="keycap px-4 py-2 text-sm font-bold">DIRECTORY</button>
+            <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-4 py-2 text-sm font-bold text-red-700 hidden">ADMIN PANEL</button>
+            <button onclick="logout()" class="keycap px-4 py-2 text-sm font-bold text-gray-600">LOGOUT</button>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-center">
+
+        <!-- 1. AUTHENTICATION VIEW -->
+        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)]">
+            <div class="flex justify-center mb-6">
+                <div class="w-24 h-24 bg-white p-1 rounded-full shadow-inner border-4 border-[#b5b5a6]">
+                    <img src="images_2.png" alt="TU Logo" class="w-full h-full object-contain rounded-full">
                 </div>
             </div>
-        </header>
-
-        <!-- Container สำหรับผังองค์กร -->
-        <div class="bg-[#cbcbbf] p-6 md:p-10 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)]">
+            <h1 class="text-2xl font-bold text-center mb-2">TU ALUMNI LOGIN</h1>
+            <p class="text-center text-sm mb-6 thai-text">กรุณาล็อกอินด้วยรหัสนักศึกษา 10 หลัก</p>
             
-            <div class="org-tree">
-                <ul>
-                    <!-- Level 1: ประธาน (President) -->
-                    <li>
-                        <div class="keycap president p-4 flex flex-col items-center">
-                            <div class="w-full text-left mb-2">
-                                <span class="text-[10px] text-gray-500 font-bold">ESC</span>
-                            </div>
-                            <img src="https://placehold.co/100x100/b5b5a6/333333?text=PR" alt="President" class="w-16 h-16 profile-img mb-3 object-cover">
-                            <p class="thai-text text-sm font-bold text-gray-800 leading-tight">สมชาย ใจดี</p>
-                            <div class="w-full mt-2 pt-1 border-t border-gray-400">
-                                <p class="thai-text text-xs text-gray-700 font-bold">ประธานรุ่น</p>
-                            </div>
+            <div class="bg-black p-4 rounded-lg shadow-inner mb-6 relative">
+                <div class="absolute top-0 left-0 w-full h-full pointer-events-none rounded-lg" style="background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);"></div>
+                
+                <form id="auth-form" onsubmit="handleAuth(event)" class="relative z-10 flex flex-col gap-4">
+                    <div>
+                        <label class="text-xs text-green-600 font-bold mb-1 block">STUDENT ID_</label>
+                        <div class="flex items-center cmd-prefix">
+                            <input type="text" id="auth-id" required pattern="[0-9]{10}" placeholder="6910616249" class="cmd-input bg-transparent border-none p-0 box-shadow-none" maxlength="10">
                         </div>
-                        
-                        <!-- Level 2: รองประธาน (Vice Presidents) -->
-                        <ul>
-                            <!-- รองประธาน 1 -->
-                            <li>
-                                <div class="keycap p-4 flex flex-col items-center">
-                                    <div class="w-full text-left mb-2">
-                                        <span class="text-[10px] text-gray-400 font-bold">F1</span>
-                                    </div>
-                                    <img src="https://placehold.co/100x100/d1d1c8/333333?text=V1" alt="VP 1" class="w-14 h-14 profile-img mb-3 object-cover">
-                                    <p class="thai-text text-sm font-bold text-gray-800 leading-tight">มานี รักเรียน</p>
-                                    <div class="w-full mt-2 pt-1 border-t border-gray-300">
-                                        <p class="thai-text text-[11px] text-gray-600 font-bold">รองประธาน (วิชาการ)</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Level 3: สมาชิกภายใต้รอง 1 -->
-                                <ul>
-                                    <li>
-                                        <div class="keycap p-3 flex flex-col items-center w-32">
-                                            <img src="https://placehold.co/100x100/d1d1c8/333333?text=M1" alt="Member" class="w-10 h-10 profile-img mb-2 object-cover">
-                                            <p class="thai-text text-xs font-bold text-gray-800">กฤษดา</p>
-                                            <p class="thai-text text-[10px] text-gray-500 mt-1">สมาชิก</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="keycap p-3 flex flex-col items-center w-32">
-                                            <img src="https://placehold.co/100x100/d1d1c8/333333?text=M2" alt="Member" class="w-10 h-10 profile-img mb-2 object-cover">
-                                            <p class="thai-text text-xs font-bold text-gray-800">วิภาวี</p>
-                                            <p class="thai-text text-[10px] text-gray-500 mt-1">สมาชิก</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                            
-                            <!-- รองประธาน 2 -->
-                            <li>
-                                <div class="keycap p-4 flex flex-col items-center">
-                                    <div class="w-full text-left mb-2">
-                                        <span class="text-[10px] text-gray-400 font-bold">F2</span>
-                                    </div>
-                                    <img src="https://placehold.co/100x100/d1d1c8/333333?text=V2" alt="VP 2" class="w-14 h-14 profile-img mb-3 object-cover">
-                                    <p class="thai-text text-sm font-bold text-gray-800 leading-tight">ปิติ กิจกรรม</p>
-                                    <div class="w-full mt-2 pt-1 border-t border-gray-300">
-                                        <p class="thai-text text-[11px] text-gray-600 font-bold">รองประธาน (กิจกรรม)</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Level 3: สมาชิกภายใต้รอง 2 -->
-                                <ul>
-                                    <li>
-                                        <div class="keycap p-3 flex flex-col items-center w-32">
-                                            <img src="https://placehold.co/100x100/d1d1c8/333333?text=M3" alt="Member" class="w-10 h-10 profile-img mb-2 object-cover">
-                                            <p class="thai-text text-xs font-bold text-gray-800">ณัฐพล</p>
-                                            <p class="thai-text text-[10px] text-gray-500 mt-1">สมาชิก</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="keycap p-3 flex flex-col items-center w-32">
-                                            <img src="https://placehold.co/100x100/d1d1c8/333333?text=M4" alt="Member" class="w-10 h-10 profile-img mb-2 object-cover">
-                                            <p class="thai-text text-xs font-bold text-gray-800">อรทัย</p>
-                                            <p class="thai-text text-[10px] text-gray-500 mt-1">สมาชิก</p>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="keycap p-3 flex flex-col items-center w-32">
-                                            <img src="https://placehold.co/100x100/d1d1c8/333333?text=M5" alt="Member" class="w-10 h-10 profile-img mb-2 object-cover">
-                                            <p class="thai-text text-xs font-bold text-gray-800">ธนา</p>
-                                            <p class="thai-text text-[10px] text-gray-500 mt-1">สมาชิก</p>
-                                        </div>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        
-                    </li>
-                </ul>
+                    </div>
+                    <div>
+                        <label class="text-xs text-green-600 font-bold mb-1 block">PASSWORD_</label>
+                        <div class="flex items-center cmd-prefix">
+                            <input type="password" id="auth-password" required placeholder="********" class="cmd-input bg-transparent border-none p-0 box-shadow-none">
+                        </div>
+                    </div>
+                    <div id="auth-error" class="text-red-500 text-xs mt-1 hidden thai-text">Error message</div>
+                    <div class="flex gap-4 mt-2">
+                        <button type="submit" id="login-btn" class="flex-1 bg-green-700 hover:bg-green-600 text-black font-bold py-2 rounded text-sm border-2 border-green-500 transition-colors">LOGIN</button>
+                        <button type="button" onclick="handleAuth(event, true)" id="register-btn" class="flex-1 bg-transparent border-2 border-green-700 text-green-600 hover:bg-green-900 hover:text-green-400 font-bold py-2 rounded text-sm transition-colors">REGISTER</button>
+                    </div>
+                </form>
             </div>
-            
         </div>
+
+        <!-- 2. DIRECTORY VIEW -->
+        <div id="directory-view" class="w-full max-w-6xl hidden">
+            <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 relative overflow-hidden">
+                <div class="text-center z-10">
+                    <h1 class="text-3xl md:text-4xl font-bold tracking-tighter text-[#222]">CPE TU ALUMNI</h1>
+                    <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ผังองค์กรทำเนียบรุ่น</h2>
+                </div>
+            </header>
+
+            <div class="bg-[#cbcbbf] p-4 md:p-10 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] min-h-[400px]">
+                <!-- ผังต้นไม้จะถูก Render ที่นี่ -->
+                <div class="org-tree" id="tree-container">
+                    <div class="flex items-center justify-center h-40 text-gray-500 font-bold animate-pulse">LOADING DATA...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ADMIN PANEL VIEW -->
+        <div id="admin-view" class="w-full max-w-4xl hidden">
+            <div class="bg-[#dfdfd5] p-6 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-lg mb-8">
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                    <span class="bg-red-600 w-3 h-3 rounded-full inline-block"></span> ADMIN CONTROL PANEL
+                </h2>
+                
+                <div class="bg-[#cbcbbf] p-4 rounded shadow-inner border border-gray-400 mb-6">
+                    <h3 class="font-bold mb-3 thai-text">เพิ่ม / แก้ไข สมาชิก</h3>
+                    <form id="admin-form" onsubmit="saveMember(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4 thai-text">
+                        <input type="hidden" id="edit-doc-id">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">รหัสนักศึกษา (10 หลัก)</label>
+                            <input type="text" id="member-id" required pattern="[0-9]{10}" class="w-full p-2 rounded border border-gray-400 font-mono text-sm" placeholder="เช่น 6910616249">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">ชื่อ-นามสกุล</label>
+                            <input type="text" id="member-name" required class="w-full p-2 rounded border border-gray-400 text-sm" placeholder="สมชาย ใจดี">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">ตำแหน่ง</label>
+                            <select id="member-position" required class="w-full p-2 rounded border border-gray-400 text-sm bg-white">
+                                <option value="President">ประธานรุ่น</option>
+                                <option value="VP">รองประธาน</option>
+                                <option value="Member" selected>สมาชิก</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button type="submit" class="keycap w-full py-2 text-sm font-bold !w-full !m-0 bg-gradient-to-b from-green-200 to-green-400 border-green-600">SAVE_</button>
+                            <button type="button" onclick="resetAdminForm()" class="keycap py-2 px-3 text-sm font-bold !w-auto !m-0 bg-gradient-to-b from-gray-200 to-gray-300">X</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="overflow-x-auto bg-white border border-gray-400 shadow-inner">
+                    <table class="w-full text-left border-collapse thai-text">
+                        <thead>
+                            <tr class="bg-gray-200 border-b border-gray-400">
+                                <th class="p-3 font-bold text-sm">รูป</th>
+                                <th class="p-3 font-bold text-sm">รหัสนักศึกษา</th>
+                                <th class="p-3 font-bold text-sm">ชื่อ-นามสกุล</th>
+                                <th class="p-3 font-bold text-sm">ตำแหน่ง</th>
+                                <th class="p-3 font-bold text-sm text-center">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body">
+                            <!-- แถวจะถูกเพิ่มด้วย JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Profile & Messages -->
+    <div id="profile-modal" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
+        <!-- คลิกพื้นหลังเพื่อปิด -->
+        <div class="absolute inset-0" onclick="closeProfile()"></div>
         
+        <div class="bg-[#dfdfd5] w-full max-w-lg rounded-xl shadow-2xl relative z-10 border-2 border-white flex flex-col max-h-[90vh]">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 z-20">X</button>
+            
+            <!-- Header Profile -->
+            <div class="p-6 border-b-2 border-gray-400 flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-gray-200 to-transparent rounded-t-xl">
+                <img id="modal-img" src="" alt="Profile" class="w-24 h-24 rounded-full border-4 border-white shadow-md object-cover z-10 mb-3 bg-gray-300">
+                <h3 id="modal-name" class="thai-text text-xl font-bold text-gray-800 z-10">Name</h3>
+                <p id="modal-id" class="text-sm font-mono text-gray-600 z-10 mb-1">ID</p>
+                <div id="modal-position" class="thai-text text-xs bg-[#1a1a1a] text-[#4ade80] px-3 py-1 rounded-full font-bold shadow-inner z-10 tracking-widest">POSITION</div>
+            </div>
+
+            <!-- Message Board (IG Style) -->
+            <div class="flex-grow p-4 bg-[#f5f5f0] overflow-y-auto message-board" id="message-container">
+                <div class="text-center text-gray-400 text-sm thai-text py-4 font-bold" id="msg-loading">กำลังโหลดข้อความ...</div>
+                <!-- Messages will appear here -->
+            </div>
+
+            <!-- Message Input -->
+            <div class="p-4 border-t border-gray-300 bg-[#ebebe6] rounded-b-xl">
+                <form onsubmit="postMessage(event)" class="flex gap-2">
+                    <input type="text" id="message-input" required class="flex-grow p-2 rounded-full border border-gray-400 focus:outline-none focus:border-gray-600 text-sm thai-text px-4" placeholder="เขียนข้อความทักทาย...">
+                    <button type="submit" class="bg-gray-800 text-white px-4 py-2 rounded-full font-bold text-sm hover:bg-gray-700 transition">POST</button>
+                </form>
+            </div>
+        </div>
     </div>
 
+    <!-- Alert Modal (Custom Alert) -->
+    <div id="alert-modal" class="fixed inset-0 modal-bg z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-[#dfdfd5] border-2 border-gray-400 rounded shadow-2xl p-6 max-w-sm w-full text-center">
+            <h3 class="font-bold mb-2 thai-text" id="alert-title">แจ้งเตือน</h3>
+            <p class="text-sm text-gray-700 mb-6 thai-text" id="alert-msg">Message</p>
+            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap py-2 px-6 text-sm font-bold !w-auto">OK</button>
+        </div>
+    </div>
+
+    <!-- ----------------------------------------------------------- -->
+    <!-- FIREBASE & LOGIC SCRIPT -->
+    <!-- ----------------------------------------------------------- -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration (From prompt)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
+            authDomain: "class-directory-3b8c9.firebaseapp.com",
+            projectId: "class-directory-3b8c9",
+            storageBucket: "class-directory-3b8c9.firebasestorage.app",
+            messagingSenderId: "571082825613",
+            appId: "1:571082825613:web:de6921e521caef79be67c4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Constants
+        const ADMIN_ID = '6910616249';
+        const DOMAIN = '@dome.tu.ac.th';
+        // Base path rule compliance (Mandatory Rule 1)
+        const APP_ID = 'cpe-tu-alumni-app'; 
+        const MEMBERS_COLL = collection(db, 'artifacts', APP_ID, 'public', 'data', 'members');
+        const MESSAGES_COLL = collection(db, 'artifacts', APP_ID, 'public', 'data', 'messages');
+        
+        // GitHub repo URL for images (Format: .../main/{studentId}.png)
+        const GITHUB_REPO_URL = 'https://raw.githubusercontent.com/github/explore/main/topics/'; // Placeholder base URL. Update this with actual repo URL.
+
+        // State
+        let currentUser = null;
+        let currentUserData = null; // Contains studentId
+        let isAdmin = false;
+        let membersData = [];
+        let messagesData = [];
+        let currentProfileId = null;
+        let unsubMembers = null;
+        let unsubMessages = null;
+
+        // Custom Alert
+        window.showAlert = (title, msg) => {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = msg;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        };
+
+        // UI Routing
+        window.switchView = (viewId) => {
+            ['auth-view', 'directory-view', 'admin-view'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+        };
+
+        // --- AUTHENTICATION ---
+        window.handleAuth = async (e, isRegister = false) => {
+            e.preventDefault();
+            const idInput = document.getElementById('auth-id').value.trim();
+            const passInput = document.getElementById('auth-password').value;
+            const errorDiv = document.getElementById('auth-error');
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (idInput.length !== 10) {
+                errorDiv.innerText = "รหัสนักศึกษาต้องมี 10 หลัก";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const email = idInput + DOMAIN;
+            errorDiv.classList.add('hidden');
+            loginBtn.innerText = "PROCESSING...";
+
+            try {
+                if (isRegister) {
+                    await createUserWithEmailAndPassword(auth, email, passInput);
+                    showAlert("สำเร็จ", "ลงทะเบียนเรียบร้อยแล้ว ล็อกอินเข้าสู่ระบบ...");
+                } else {
+                    await signInWithEmailAndPassword(auth, email, passInput);
+                }
+            } catch (error) {
+                console.error("Auth Error:", error);
+                errorDiv.innerText = isRegister ? "ไม่สามารถลงทะเบียนได้ (อาจมีบัญชีนี้แล้ว หรือรหัสผ่านอ่อนเกินไป)" : "รหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ลงทะเบียน";
+                errorDiv.classList.remove('hidden');
+            } finally {
+                loginBtn.innerText = "LOGIN";
+            }
+        };
+
+        window.logout = () => {
+            signOut(auth);
+        };
+
+        // Auth State Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                const studentId = user.email.replace(DOMAIN, '');
+                currentUserData = { studentId: studentId };
+                isAdmin = (studentId === ADMIN_ID);
+                
+                document.getElementById('navbar').style.display = 'flex';
+                
+                if (isAdmin) {
+                    document.getElementById('admin-nav-btn').classList.remove('hidden');
+                } else {
+                    document.getElementById('admin-nav-btn').classList.add('hidden');
+                }
+                
+                switchView('directory-view');
+                setupDataListeners();
+            } else {
+                currentUser = null;
+                isAdmin = false;
+                document.getElementById('navbar').style.display = 'none';
+                switchView('auth-view');
+                
+                if(unsubMembers) unsubMembers();
+                if(unsubMessages) unsubMessages();
+            }
+        });
+
+        // --- FIRESTORE DATA SYNC ---
+        function setupDataListeners() {
+            if (!currentUser) return; // Guard query (Mandatory Rule 3)
+
+            // Listen to Members
+            unsubMembers = onSnapshot(MEMBERS_COLL, (snapshot) => {
+                membersData = [];
+                snapshot.forEach(doc => {
+                    membersData.push({ id: doc.id, ...doc.data() });
+                });
+                renderTree();
+                if(isAdmin) renderAdminTable();
+            }, (error) => {
+                console.error("Error fetching members:", error);
+            });
+
+            // Listen to Messages (Fetch all, filter locally per rule)
+            unsubMessages = onSnapshot(MESSAGES_COLL, (snapshot) => {
+                messagesData = [];
+                snapshot.forEach(doc => {
+                    messagesData.push({ id: doc.id, ...doc.data() });
+                });
+                if(currentProfileId) {
+                    renderMessages(currentProfileId);
+                }
+            }, (error) => {
+                console.error("Error fetching messages:", error);
+            });
+        }
+
+        // --- ADMIN CRUD ---
+        window.saveMember = async (e) => {
+            e.preventDefault();
+            if (!isAdmin) return;
+
+            const idField = document.getElementById('edit-doc-id').value;
+            const studentId = document.getElementById('member-id').value.trim();
+            const name = document.getElementById('member-name').value.trim();
+            const position = document.getElementById('member-position').value;
+
+            const memberData = {
+                studentId: studentId,
+                name: name,
+                position: position,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                if (idField) {
+                    // Update
+                    const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'members', idField);
+                    await setDoc(docRef, memberData, { merge: true });
+                } else {
+                    // Check duplicate
+                    if (membersData.some(m => m.studentId === studentId)) {
+                        showAlert("ข้อผิดพลาด", "รหัสนักศึกษานี้มีอยู่ในระบบแล้ว");
+                        return;
+                    }
+                    // Add
+                    await addDoc(MEMBERS_COLL, memberData);
+                }
+                resetAdminForm();
+                showAlert("สำเร็จ", "บันทึกข้อมูลเรียบร้อย");
+            } catch (error) {
+                console.error("Error saving member", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้");
+            }
+        };
+
+        window.editMember = (docId) => {
+            const member = membersData.find(m => m.id === docId);
+            if (member) {
+                document.getElementById('edit-doc-id').value = member.id;
+                document.getElementById('member-id').value = member.studentId;
+                document.getElementById('member-name').value = member.name;
+                document.getElementById('member-position').value = member.position;
+            }
+        };
+
+        window.deleteMember = async (docId) => {
+            if (!isAdmin) return;
+            // No confirm() allowed, build custom one if needed, but for simplicity we proceed if clicked.
+            try {
+                const docRef = doc(db, 'artifacts', APP_ID, 'public', 'data', 'members', docId);
+                await deleteDoc(docRef);
+            } catch (error) {
+                console.error("Error deleting", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถลบข้อมูลได้");
+            }
+        };
+
+        window.resetAdminForm = () => {
+            document.getElementById('admin-form').reset();
+            document.getElementById('edit-doc-id').value = '';
+        };
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            
+            // Sort by student id locally
+            const sorted = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
+            
+            sorted.forEach(member => {
+                const imgUrl = `${GITHUB_REPO_URL}${member.studentId}.png`;
+                const fallbackUrl = `https://placehold.co/100x100/d1d1c8/333333?text=${member.studentId.substring(0,2)}`;
+                
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-gray-300 hover:bg-gray-100";
+                tr.innerHTML = `
+                    <td class="p-2">
+                        <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';" class="w-10 h-10 rounded object-cover border border-gray-400">
+                    </td>
+                    <td class="p-2 font-mono text-sm">${member.studentId}</td>
+                    <td class="p-2 text-sm">${member.name}</td>
+                    <td class="p-2 text-sm">
+                        <span class="px-2 py-1 rounded text-xs text-white ${member.position === 'President' ? 'bg-red-800' : member.position === 'VP' ? 'bg-orange-600' : 'bg-gray-600'}">
+                            ${member.position}
+                        </span>
+                    </td>
+                    <td class="p-2 text-center">
+                        <button onclick="editMember('${member.id}')" class="text-blue-600 hover:underline text-xs mr-2">แก้ไข</button>
+                        <button onclick="deleteMember('${member.id}')" class="text-red-600 hover:underline text-xs">ลบ</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- TREE RENDERING ---
+        function renderTree() {
+            const container = document.getElementById('tree-container');
+            
+            if (membersData.length === 0) {
+                container.innerHTML = `<div class="flex items-center justify-center h-40 text-gray-500 font-bold">ไม่มีข้อมูลในระบบ...<br>(แอดมินกรุณาเพิ่มข้อมูล)</div>`;
+                return;
+            }
+
+            const president = membersData.find(m => m.position === 'President');
+            const vps = membersData.filter(m => m.position === 'VP');
+            // User requested 1 VP, we take the first if multiple exist
+            const vp = vps.length > 0 ? vps[0] : null; 
+            const members = membersData.filter(m => m.position === 'Member');
+
+            let html = `<ul>`;
+            
+            // Build President Node
+            if (president) {
+                html += `<li>${buildKeycapNode(president, 'president')}<ul>`;
+            } else {
+                html += `<li><div class="text-xs text-red-500 font-bold mb-4">[ไม่มีข้อมูลประธาน]</div><ul>`;
+            }
+
+            // Build VP Node (Only 1 VP as requested)
+            if (vp) {
+                html += `<li>${buildKeycapNode(vp)}<ul>`;
+            } else {
+                html += `<li><div class="text-xs text-orange-500 font-bold mb-4">[ไม่มีข้อมูลรองประธาน]</div><ul>`;
+            }
+
+            // Build Members Nodes
+            members.forEach(m => {
+                html += `<li>${buildKeycapNode(m, 'small')}</li>`;
+            });
+
+            // Close tags
+            html += `</ul></li>`; // Close VP
+            if (president) html += `</ul></li>`; // Close President
+            else html += `</ul></li>`;
+
+            container.innerHTML = html;
+        }
+
+        function buildKeycapNode(member, type = 'normal') {
+            const imgUrl = `${GITHUB_REPO_URL}${member.studentId}.png`;
+            const fallbackUrl = `https://placehold.co/100x100/d1d1c8/333333?text=${member.name.substring(0,2)}`;
+            const isPres = type === 'president';
+            const isSmall = type === 'small';
+            
+            const wClass = isSmall ? 'w-28' : 'w-40';
+            const imgSize = isSmall ? 'w-10 h-10' : 'w-16 h-16';
+            const nameSize = isSmall ? 'text-xs' : 'text-sm';
+            
+            let posLabel = "สมาชิก";
+            if(member.position === 'President') posLabel = "ประธานรุ่น";
+            if(member.position === 'VP') posLabel = "รองประธาน";
+
+            return `
+                <div class="keycap ${isPres ? 'president' : ''} p-3 flex flex-col items-center ${wClass}" onclick="openProfile('${member.studentId}')">
+                    <img src="${imgUrl}" onerror="this.onerror=null; this.src='${fallbackUrl}';" alt="Profile" class="${imgSize} profile-img mb-2 shadow-inner">
+                    <p class="thai-text ${nameSize} font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${member.name}</p>
+                    <div class="w-full mt-1 pt-1 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
+                        <p class="thai-text text-[10px] text-gray-600 font-bold">${posLabel}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- PROFILE & MESSAGES ---
+        window.openProfile = (studentId) => {
+            const member = membersData.find(m => m.studentId === studentId);
+            if (!member) return;
+
+            currentProfileId = studentId;
+            
+            // Set UI
+            document.getElementById('modal-name').innerText = member.name;
+            document.getElementById('modal-id').innerText = member.studentId;
+            
+            let posLabel = "MEMBER";
+            if(member.position === 'President') posLabel = "PRESIDENT";
+            if(member.position === 'VP') posLabel = "VICE PRESIDENT";
+            document.getElementById('modal-position').innerText = posLabel;
+
+            const img = document.getElementById('modal-img');
+            img.src = `${GITHUB_REPO_URL}${member.studentId}.png`;
+            img.onerror = () => { img.src = `https://placehold.co/200x200/d1d1c8/333333?text=${member.name.substring(0,2)}`; };
+
+            document.getElementById('profile-modal').classList.remove('hidden');
+            renderMessages(studentId);
+        };
+
+        window.closeProfile = () => {
+            document.getElementById('profile-modal').classList.add('hidden');
+            currentProfileId = null;
+        };
+
+        function renderMessages(studentId) {
+            const container = document.getElementById('message-container');
+            
+            // Filter locally (Mandatory Rule 2)
+            const msgs = messagesData
+                            .filter(m => m.recipientId === studentId)
+                            .sort((a,b) => a.timestamp - b.timestamp);
+
+            if (msgs.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 text-xs thai-text py-10">ยังไม่มีข้อความ เริ่มทักทายเลย!</div>`;
+                return;
+            }
+
+            let html = '<div class="flex flex-col gap-3 pb-2">';
+            msgs.forEach(msg => {
+                const isMe = msg.senderId === currentUserData.studentId;
+                const d = new Date(msg.timestamp);
+                const timeStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                
+                html += `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                        <span class="text-[10px] text-gray-500 font-mono mb-1 mx-1">${isMe ? 'You' : msg.senderId} • ${timeStr}</span>
+                        <div class="max-w-[80%] rounded-2xl px-4 py-2 text-sm thai-text shadow-sm ${isMe ? 'bg-gray-800 text-white rounded-br-none' : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'}">
+                            ${msg.text}
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            // Scroll to bottom
+            container.scrollTop = container.scrollHeight;
+        }
+
+        window.postMessage = async (e) => {
+            e.preventDefault();
+            if (!currentUser || !currentProfileId) return;
+
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            input.value = ''; // clear instantly for UI feel
+
+            const msgData = {
+                recipientId: currentProfileId,
+                senderId: currentUserData.studentId,
+                text: text,
+                timestamp: Date.now()
+            };
+
+            try {
+                await addDoc(MESSAGES_COLL, msgData);
+            } catch (error) {
+                console.error("Error sending message", error);
+                showAlert("ข้อผิดพลาด", "ไม่สามารถส่งข้อความได้");
+            }
+        };
+
+    </script>
 </body>
 </html>
