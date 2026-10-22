@@ -9,8 +9,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse สำหรับอ่าน CSV -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <!-- heic2any สำหรับแปลงไฟล์ .heic จาก iPhone -->
-    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -285,8 +283,8 @@
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 z-20">X</button>
             
             <div class="p-6 border-b-2 border-gray-400 flex flex-col items-center relative overflow-hidden bg-gradient-to-b from-gray-200 to-transparent rounded-t-xl">
-                <!-- Image loading uses async HEIC logic -->
-                <img id="modal-img" src="" alt="Profile" class="w-48 h-48 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300">
+                <!-- Native async fallback loading -->
+                <img id="modal-img" src="" onerror="window.handleFallbackImg(this, currentProfileId, 0)" alt="Profile" class="w-48 h-48 rounded border-4 border-[#b5b5a6] shadow-md object-cover z-10 mb-3 bg-gray-300">
                 
                 <h3 id="modal-name" class="thai-text text-2xl font-bold text-gray-800 z-10 text-center leading-tight">Name</h3>
                 <p id="modal-nickname" class="thai-text text-sm text-gray-600 z-10 mb-1 font-bold">Nickname</p>
@@ -319,15 +317,6 @@
         </div>
     </div>
 
-    <!-- Custom Alert Modal -->
-    <div id="alert-modal" class="fixed inset-0 modal-bg z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] border-2 border-white rounded-lg shadow-2xl p-6 max-w-sm w-full text-center">
-            <h3 class="font-bold mb-2 thai-text text-lg" id="alert-title">แจ้งเตือน</h3>
-            <p class="text-sm text-gray-700 mb-6 thai-text whitespace-pre-line" id="alert-msg">Message</p>
-            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap py-2 px-6 text-sm font-bold !w-auto">OK_</button>
-        </div>
-    </div>
-
     <!-- ----------------------------------------------------------- -->
     <!-- JAVASCRIPT & FIREBASE INTEGRATION -->
     <!-- ----------------------------------------------------------- -->
@@ -357,7 +346,7 @@
         
         let currentUser = null;
         let membersData = [];
-        let currentProfileId = null;
+        window.currentProfileId = null; // Exposed to window for fallbackImg to access
         let isDataSubscribed = false;
 
         // Custom Alert Wrapper
@@ -368,54 +357,20 @@
         }
 
         // ==========================================
-        // UNIVERSAL IMAGE EXTENSION & HEIC LOGIC
+        // NON-BLOCKING IMAGE FALLBACK LOGIC
         // ==========================================
-        window.loadProfileImage = async function(imgElement, studentId) {
-            const extensions = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'heic'];
-            const fallbackSrc = 'https://placehold.co/200x200/d1d1c8/333333?text=NO+IMAGE';
-            
-            // Prevent multiple parallel executions for the same image
-            if (imgElement.dataset.loading === "true") return;
-            imgElement.dataset.loading = "true";
-
-            for (let i = 0; i < extensions.length; i++) {
-                const ext = extensions[i];
-                const url = `assets/${studentId}.${ext}`;
-
-                if (ext === 'heic') {
-                    try {
-                        const response = await fetch(url);
-                        if (response.ok) {
-                            const blob = await response.blob();
-                            if (blob.type.includes('heic') || blob.type === 'application/octet-stream') {
-                                const convertedBlob = await heic2any({ blob, toType: "image/jpeg" });
-                                imgElement.src = URL.createObjectURL(convertedBlob);
-                                imgElement.dataset.loading = "false";
-                                return; // Success!
-                            }
-                        }
-                    } catch (e) { console.warn(`HEIC conversion failed for ${studentId}`, e); }
-                } else {
-                    // Test standard image format using a Promise
-                    const isSuccess = await new Promise((resolve) => {
-                        const tempImg = new Image();
-                        tempImg.onload = () => resolve(true);
-                        tempImg.onerror = () => resolve(false);
-                        tempImg.src = url;
-                    });
-
-                    if (isSuccess) {
-                        imgElement.src = url;
-                        imgElement.dataset.loading = "false";
-                        return; // Success!
-                    }
-                }
+        window.handleFallbackImg = function(imgElement, studentId, step) {
+            const exts = ['jpg', 'png', 'webp'];
+            if (step < exts.length) {
+                // Attach the next fallback step BEFORE setting src to avoid race conditions
+                imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1); };
+                imgElement.src = `assets/${studentId}.${exts[step]}`;
+            } else {
+                // If all fail, use ui-avatars dummy
+                imgElement.onerror = null;
+                imgElement.src = `https://ui-avatars.com/api/?name=${studentId}&background=d1d1c8&color=333&size=200`;
             }
-            
-            // If all failed
-            imgElement.src = fallbackSrc;
-            imgElement.dataset.loading = "false";
-        }
+        };
 
         window.switchView = function(viewId) {
             ['auth-view', 'directory-view', 'admin-view'].forEach(id => {
@@ -526,14 +481,14 @@
             onSnapshot(usersColRef, (snapshot) => {
                 membersData = [];
                 snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
-                renderTree();
+                renderTree(); // Instant re-render
                 if(!document.getElementById('admin-view').classList.contains('hidden')) {
                     renderAdminTable();
                 }
                 
                 // Update open profile modal if it's currently open
-                if (currentProfileId) {
-                    const updatedMember = membersData.find(m => m.studentId === currentProfileId);
+                if (window.currentProfileId) {
+                    const updatedMember = membersData.find(m => m.studentId === window.currentProfileId);
                     if (updatedMember) {
                         const statusInput = document.getElementById('status-input');
                         if(statusInput && statusInput.value !== updatedMember.status && document.activeElement !== statusInput) {
@@ -715,13 +670,7 @@
             }
 
             html += `</div>`;
-            container.innerHTML = html;
-            
-            // Trigger image async loads after rendering HTML
-            membersData.forEach(m => {
-                const img = document.getElementById(`img-node-${m.studentId}`);
-                if(img) loadProfileImage(img, m.studentId);
-            });
+            container.innerHTML = html; // DOM updates instantaneously here
         }
 
         window.buildKeycapNode = function(member, type = 'normal') {
@@ -729,9 +678,14 @@
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || member.name || 'ไม่ระบุชื่อ';
             
+            // Start with .jpeg natively. If it fails, fallback sequentially via the onerror handler.
             return `
                 <div class="keycap ${isPres ? 'president' : ''} p-4 flex flex-col items-center w-[250px]" onclick="openProfile('${member.studentId}')">
-                    <img id="img-node-${member.studentId}" src="https://placehold.co/200x200/d1d1c8/333333?text=LOADING..." alt="Profile" class="profile-img mb-3">
+                    <img id="img-node-${member.studentId}" 
+                         src="assets/${member.studentId}.jpeg" 
+                         onerror="window.handleFallbackImg(this, '${member.studentId}', 0)" 
+                         alt="Profile" 
+                         class="profile-img mb-3 bg-gray-300">
                     <p class="thai-text text-lg font-bold text-gray-800 leading-tight text-center overflow-hidden w-full whitespace-nowrap text-ellipsis">${displayName}</p>
                     <div class="w-full mt-2 pt-2 border-t ${isPres ? 'border-gray-400' : 'border-gray-300'}">
                         <p class="thai-text text-sm text-gray-600 font-bold text-center">${member.position}</p>
@@ -748,7 +702,7 @@
             const member = membersData.find(m => m.studentId === studentId);
             if (!member) return;
 
-            currentProfileId = studentId;
+            window.currentProfileId = studentId;
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             
             document.getElementById('modal-name').innerText = fullName || 'ไม่ระบุชื่อ';
@@ -759,10 +713,10 @@
             document.getElementById('modal-line').innerText = member.lineId || '-';
             document.getElementById('modal-ig').innerText = member.instagram || '-';
 
-            // Async load image into modal
+            // Reset image logic natively in the modal
             const modalImg = document.getElementById('modal-img');
-            modalImg.src = 'https://placehold.co/200x200/d1d1c8/333333?text=LOADING...';
-            loadProfileImage(modalImg, member.studentId);
+            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 0); };
+            modalImg.src = `assets/${member.studentId}.jpeg`;
 
             // Access Control for Status Form
             const statusForm = document.getElementById('status-form');
@@ -783,15 +737,15 @@
 
         window.closeProfile = function() {
             document.getElementById('profile-modal').classList.add('hidden');
-            currentProfileId = null;
+            window.currentProfileId = null;
         }
 
         window.updateStatus = async function(e) {
             e.preventDefault();
-            if (!currentUser || currentUser.isAnon || !currentProfileId) return;
+            if (!currentUser || currentUser.isAnon || !window.currentProfileId) return;
             
             // Validate ownership/admin
-            if (currentUser.studentId !== currentProfileId && !currentUser.isAdmin) return; 
+            if (currentUser.studentId !== window.currentProfileId && !currentUser.isAdmin) return; 
 
             const statusVal = document.getElementById('status-input').value.trim();
             const btn = document.getElementById('status-btn');
@@ -801,7 +755,7 @@
             btn.disabled = true;
 
             try {
-                await updateDoc(doc(db, USERS_PATH, currentProfileId), { status: statusVal });
+                await updateDoc(doc(db, USERS_PATH, window.currentProfileId), { status: statusVal });
                 // Database onSnapshot will automatically re-render the view
                 showAlert("สำเร็จ", "อัปเดตสเตตัสส่วนตัวเรียบร้อยแล้ว");
                 closeProfile();
