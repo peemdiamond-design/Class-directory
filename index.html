@@ -118,13 +118,13 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Navbar ย้ายโลโก้ TSE มาไว้ที่นี่ -->
+    <!-- Navbar -->
     <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-3 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
-        <div class="flex items-center gap-2 md:gap-4 cursor-pointer" onclick="switchView('directory-view')">
+        <div class="flex items-center gap-3 md:gap-5 cursor-pointer" onclick="switchView('directory-view')">
             <!-- โลโก้ธรรมศาสตร์ -->
             <img src="assets/images.png" style="mix-blend-mode: multiply; height: 50px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain md:h-[60px]">
-            <!-- โลโก้ TSE -->
-            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 40px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[50px]">
+            <!-- โลโก้ TSE (ปรับขนาดให้สมส่วนกับ TU) -->
+            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 55px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[65px]">
             <span class="font-bold tracking-tighter hidden lg:block text-xl ml-2">CLASS DIRECTORY CN25</span>
         </div>
         <div class="flex gap-2 sm:gap-4 items-center">
@@ -302,7 +302,7 @@
     <div id="alert-modal" class="fixed inset-0 modal-bg z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center text-center">
             <h3 id="alert-title" class="thai-text text-xl font-bold mb-2 text-gray-800 uppercase tracking-wide">Title</h3>
-            <p id="alert-msg" class="thai-text text-sm text-gray-600 mb-6 font-medium">Message</p>
+            <p id="alert-msg" class="thai-text text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">Message</p>
             <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap px-8 py-2 text-sm font-bold text-gray-800">OK</button>
         </div>
     </div>
@@ -401,7 +401,7 @@
             if(viewId === 'admin-view') renderAdminTable();
         }
 
-        // เริ่มดึงข้อมูลผังองค์กรทันทีที่เปิดเว็บ โดยไม่ต้องรอ Login
+        // ดึงข้อมูลมาแสดงทันทีโดยไม่ต้องรอ Login
         subscribeToData();
 
         // ====== AUTHENTICATION LOGIC ======
@@ -518,7 +518,7 @@
                 complete: async function(results) {
                     let successCount = 0, skipCount = 0;
                     for (const row of results.data) {
-                        const studentId = row['รหัสนักศึกษา'] ? String(row['รหัสนักศึกษา']).trim() : '';
+                        const studentId = (row['รหัสนักศึกษา'] || row['studentId'] || '').toString().trim();
                         if (studentId.length === 10) {
                             try {
                                 const userDocRef = doc(db, USERS_PATH, studentId);
@@ -526,7 +526,7 @@
                                 if (!snap.exists()) {
                                     await setDoc(userDocRef, {
                                         studentId: studentId,
-                                        firstName: (row['ชื่อ'] || '').trim(),
+                                        firstName: (row['ชื่อ'] || row['name'] || '').trim(),
                                         lastName: (row['นามสกุล'] || '').trim(),
                                         nickname: (row['ชื่อเล่น'] || '').trim(),
                                         lineId: (row['ID Line'] || '').trim(),
@@ -539,7 +539,7 @@
                         } else skipCount++; 
                     }
                     fileInput.value = ""; btn.innerText = "IMPORT_CSV"; btn.disabled = false;
-                    showAlert("นำเข้าสำเร็จ", `เพิ่มข้อมูลใหม่: ${successCount} รายการ\nข้าม: ${skipCount} รายการ`);
+                    showAlert("นำเข้าสำเร็จ", `เพิ่มข้อมูลใหม่: ${successCount} รายการ\nข้ามรายการที่ซ้ำ/ไม่สมบูรณ์: ${skipCount} รายการ`);
                 }
             });
         };
@@ -592,7 +592,10 @@
                 return;
             }
 
-            membersData.forEach(member => {
+            // Sort by studentId
+            const sortedData = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
+
+            sortedData.forEach(member => {
                 const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -600,7 +603,7 @@
                     <td class="px-4 py-3">${fullName} ${member.nickname ? `(${member.nickname})` : ''}</td>
                     <td class="px-4 py-3">${member.position}</td>
                     <td class="px-4 py-3">
-                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">EDIT</button>
+                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors">EDIT</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -627,6 +630,8 @@
         window.saveUserEdit = async function(e) {
             e.preventDefault();
             const studentId = document.getElementById('edit-id').value;
+            const btn = document.getElementById('save-edit-btn');
+            btn.innerText = "..."; btn.disabled = true;
             try {
                 await updateDoc(doc(db, USERS_PATH, studentId), {
                     firstName: document.getElementById('edit-firstname').value.trim(),
@@ -637,32 +642,42 @@
                     instagram: document.getElementById('edit-ig').value.trim()
                 });
                 closeEditModal(); showAlert("สำเร็จ", "อัปเดตข้อมูลเรียบร้อย");
-            } catch (error) { showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกการแก้ไขได้"); }
+            } catch (error) { 
+                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกการแก้ไขได้"); 
+            } finally {
+                btn.innerText = "SAVE_CHANGES"; btn.disabled = false;
+            }
         }
 
         // ====== RENDER TREE (Grid 3 Columns) ======
         function renderTree() {
             const container = document.getElementById('tree-container');
             if (membersData.length === 0) {
-                container.innerHTML = `<div class="text-center font-bold">NO DATA FOUND.</div>`; return;
+                container.innerHTML = `<div class="text-center font-bold text-gray-500">NO DATA FOUND.</div>`; return;
             }
 
             const presidents = membersData.filter(m => m.position === 'ประธานรุ่น');
             const vps = membersData.filter(m => m.position === 'รองประธาน');
             const members = membersData.filter(m => m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน');
 
+            // Sort members by ID
+            members.sort((a,b) => a.studentId.localeCompare(b.studentId));
+
             let html = `<div class="flex flex-col items-center gap-6 md:gap-10 w-full">`;
             
+            // ประธาน
             if (presidents.length > 0) {
                 html += `<div class="flex justify-center w-full max-w-sm px-2">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
+            // รองประธาน
             if (vps.length > 0) {
                 html += `<div class="flex justify-center w-full max-w-sm px-2">
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
+            // สมาชิก (Grid แถวละ 3 คงที่)
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
@@ -711,6 +726,7 @@
             modalImg.src = `assets/${member.studentId}.jpeg`;
 
             const statusForm = document.getElementById('status-form');
+            // เห็นฟอร์มสเตตัสเฉพาะตอนล็อกอินเป็นตัวเองเท่านั้น แอดมินก็แก้ไม่ได้
             if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden'); statusForm.classList.add('flex');
                 document.getElementById('status-input').value = member.status || '';
@@ -738,8 +754,11 @@
                 });
                 showAlert("สำเร็จ", "อัปเดตสเตตัสเรียบร้อยแล้ว");
                 closeProfile();
-            } catch (error) { showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตสเตตัสได้"); } 
-            finally { btn.innerText = "UPDATE_STATUS"; btn.disabled = false; }
+            } catch (error) { 
+                showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตสเตตัสได้"); 
+            } finally { 
+                btn.innerText = "UPDATE_STATUS"; btn.disabled = false; 
+            }
         }
     </script>
 </body>
