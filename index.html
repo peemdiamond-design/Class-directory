@@ -67,7 +67,7 @@
             border-color: #b5b5a6;
         }
 
-        /* รูปโปรไฟล์ Full Color ไม่มี Grayscale */
+        /* รูปโปรไฟล์ Full Color ไม่บล็อกขาวดำ */
         .profile-img {
             border: 2px solid #b5b5a6;
             background-color: #d1d1c8;
@@ -94,8 +94,10 @@
             width: 100%;
             outline: none;
             box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+            transition: border-color 0.2s;
         }
         .cmd-input:focus { border-color: var(--terminal-text); }
+        .cmd-input::placeholder { color: #2d8a4f; }
         
         /* Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -105,6 +107,7 @@
         .modal-bg {
             background-color: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease;
         }
         
         /* IG Style LED Box */
@@ -114,20 +117,29 @@
             text-shadow: 0 0 4px rgba(74, 222, 128, 0.6);
             border: 2px solid #000;
         }
+
+        /* Smooth Popup Animation */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pop {
+            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
-        <div class="flex items-center gap-2 md:gap-5 cursor-pointer" onclick="switchView('directory-view')">
+    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0 relative" id="navbar">
+        <div class="flex items-center gap-2 md:gap-4 cursor-pointer" onclick="switchView('directory-view')">
             <!-- โลโก้ธรรมศาสตร์ -->
-            <img src="assets/images.png" style="mix-blend-mode: multiply; height: 60px;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain md:h-[75px]">
-            <!-- โลโก้ TSE (ขยายขนาดขึ้นมากเพื่อให้สมส่วนกับตราธรรมศาสตร์) -->
-            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply; height: 90px;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain hidden sm:block md:h-[115px] -ml-2 md:-ml-4">
-            <span class="font-bold tracking-tighter hidden xl:block text-2xl ml-2">CLASS DIRECTORY CN25</span>
+            <img src="assets/images.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain h-[50px] md:h-[75px]">
+            <!-- โลโก้ TSE ขยายขนาดและล็อกขวา -->
+            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain w-28 md:w-48 absolute right-2 md:right-10 top-1/2 transform -translate-y-1/2">
         </div>
-        <div class="flex gap-2 sm:gap-4 items-center">
+        <!-- เมนูปุ่มทางขวา (เว้นที่ให้โลโก้ TSE) -->
+        <div class="flex gap-2 sm:gap-4 items-center mr-32 md:mr-56">
             <button onclick="switchView('directory-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold">DIRECTORY</button>
             <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-red-700 hidden">ADMIN</button>
             <button id="login-nav-btn" onclick="switchView('auth-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-blue-800">SYSTEM_LOGIN</button>
@@ -139,11 +151,17 @@
 
         <!-- 1. DIRECTORY VIEW (Default) -->
         <div id="directory-view" class="w-full max-w-6xl flex flex-col items-center">
-            <!-- Header ป้ายชื่อรุ่นสะอาดตา (ไม่มีโลโก้พื้นหลังแล้ว) -->
+            <!-- Header ป้ายชื่อรุ่นสะอาดตา -->
             <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-6 md:p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 w-full relative">
-                <div class="text-center z-10">
+                <div class="text-center z-10 w-full flex flex-col items-center">
                     <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
                     <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
+                    <p id="member-counter" class="text-xs md:text-sm text-gray-500 font-bold mt-2 bg-gray-200 px-3 py-1 rounded-full shadow-inner">TOTAL MEMBERS: 0</p>
+                    
+                    <!-- Search Bar สไตล์ Terminal -->
+                    <div class="mt-6 w-full max-w-md relative">
+                        <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="> SEARCH_NAME_OR_ID..." class="cmd-input !py-3 !text-sm text-center w-full" autocomplete="off">
+                    </div>
                 </div>
             </header>
 
@@ -155,7 +173,7 @@
         </div>
 
         <!-- 2. AUTHENTICATION VIEW -->
-        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10 hidden">
+        <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10 hidden animate-pop">
             <div class="flex justify-center mb-6">
                 <img src="assets/images.png" style="mix-blend-mode: multiply; width: 120px;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
             </div>
@@ -183,7 +201,7 @@
         </div>
 
         <!-- 3. ADMIN PANEL VIEW -->
-        <div id="admin-view" class="w-full max-w-6xl hidden">
+        <div id="admin-view" class="w-full max-w-6xl hidden animate-pop">
             <div class="bg-[#dfdfd5] p-6 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-lg mb-8">
                 <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
                     <span class="bg-red-600 w-3 h-3 rounded-full inline-block shadow-[0_0_8px_rgba(220,38,38,0.8)]"></span> ADMIN CONTROL PANEL
@@ -198,17 +216,17 @@
                             เพิ่มสมาชิกใหม่ (กรอกข้อมูลเอง)
                         </h4>
                         <form id="manual-add-form" onsubmit="addMemberManual(event)" class="grid grid-cols-2 md:grid-cols-4 gap-3 thai-text">
-                            <input type="text" id="add-id" placeholder="รหัสนักศึกษา 10 หลัก" required pattern="[0-9]{10}" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
-                            <input type="text" id="add-firstname" placeholder="ชื่อ" required class="border border-gray-400 p-2 text-sm bg-white rounded">
-                            <input type="text" id="add-lastname" placeholder="นามสกุล" class="border border-gray-400 p-2 text-sm bg-white rounded">
-                            <input type="text" id="add-nickname" placeholder="ชื่อเล่น" class="border border-gray-400 p-2 text-sm bg-white rounded">
-                            <select id="add-position" class="border border-gray-400 p-2 text-sm bg-white rounded">
+                            <input type="text" id="add-id" placeholder="รหัสนักศึกษา 10 หลัก" required pattern="[0-9]{10}" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono shadow-inner">
+                            <input type="text" id="add-firstname" placeholder="ชื่อ" required class="border border-gray-400 p-2 text-sm bg-white rounded shadow-inner">
+                            <input type="text" id="add-lastname" placeholder="นามสกุล" class="border border-gray-400 p-2 text-sm bg-white rounded shadow-inner">
+                            <input type="text" id="add-nickname" placeholder="ชื่อเล่น" class="border border-gray-400 p-2 text-sm bg-white rounded shadow-inner">
+                            <select id="add-position" class="border border-gray-400 p-2 text-sm bg-white rounded shadow-inner">
                                 <option value="สมาชิก">สมาชิก</option>
                                 <option value="รองประธาน">รองประธาน</option>
                                 <option value="ประธานรุ่น">ประธานรุ่น</option>
                             </select>
-                            <input type="text" id="add-line" placeholder="ID Line" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
-                            <input type="text" id="add-ig" placeholder="Instagram" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono">
+                            <input type="text" id="add-line" placeholder="ID Line" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono shadow-inner">
+                            <input type="text" id="add-ig" placeholder="Instagram" class="border border-gray-400 p-2 text-sm bg-white rounded font-mono shadow-inner">
                             <button type="submit" id="manual-add-btn" class="keycap py-1 px-4 text-xs font-bold bg-green-200">ADD_MEMBER</button>
                         </form>
                     </div>
@@ -220,7 +238,7 @@
                             อัปโหลดข้อมูลจากไฟล์ CSV
                         </h4>
                         <div class="flex gap-2 items-center flex-wrap">
-                            <input type="file" id="csv-file" accept=".csv" class="border border-gray-400 p-1 text-sm bg-white rounded cursor-pointer">
+                            <input type="file" id="csv-file" accept=".csv" class="border border-gray-400 p-1 text-sm bg-white rounded cursor-pointer shadow-inner">
                             <button type="button" onclick="importCSV()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0 bg-green-200">IMPORT_CSV</button>
                         </div>
                     </div>
@@ -230,9 +248,9 @@
                         <span class="bg-yellow-500 w-2 h-2 rounded-full inline-block"></span>
                         จัดการรายชื่อสมาชิก
                     </h3>
-                    <div class="overflow-x-auto bg-white border border-gray-400 rounded">
-                        <table class="w-full text-sm text-left text-gray-800 thai-text">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-300 border-b border-gray-400">
+                    <div class="overflow-x-auto bg-white border border-gray-400 rounded shadow-inner max-h-96 overflow-y-auto">
+                        <table class="w-full text-sm text-left text-gray-800 thai-text relative">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-300 border-b border-gray-400 sticky top-0 z-10">
                                 <tr>
                                     <th scope="col" class="px-4 py-3 font-mono">Student ID</th>
                                     <th scope="col" class="px-4 py-3">ชื่อ-นามสกุล</th>
@@ -251,9 +269,18 @@
 
     </main>
 
+    <!-- Modal: Custom Alert แจ้งเตือนทั่วไป -->
+    <div id="alert-modal" class="fixed inset-0 modal-bg z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center text-center animate-pop">
+            <h3 id="alert-title" class="thai-text text-xl font-bold mb-2 text-gray-800 uppercase tracking-wide">Title</h3>
+            <p id="alert-msg" class="thai-text text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">Message</p>
+            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap px-8 py-2 text-sm font-bold text-gray-800">OK</button>
+        </div>
+    </div>
+
     <!-- Modal: Edit User (Admin Only) -->
     <div id="edit-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] w-full max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6">
+        <div class="bg-[#dfdfd5] w-full max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 animate-pop">
             <button onclick="closeEditModal()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
             <h3 class="thai-text text-xl font-bold mb-4">แก้ไขข้อมูลสมาชิก</h3>
             
@@ -262,21 +289,21 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-bold text-gray-600">ชื่อ</label>
-                        <input type="text" id="edit-firstname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                        <input type="text" id="edit-firstname" class="w-full p-2 rounded border border-gray-400 text-sm shadow-inner">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-600">นามสกุล</label>
-                        <input type="text" id="edit-lastname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                        <input type="text" id="edit-lastname" class="w-full p-2 rounded border border-gray-400 text-sm shadow-inner">
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-3">
                     <div>
                         <label class="text-xs font-bold text-gray-600">ชื่อเล่น</label>
-                        <input type="text" id="edit-nickname" class="w-full p-2 rounded border border-gray-400 text-sm">
+                        <input type="text" id="edit-nickname" class="w-full p-2 rounded border border-gray-400 text-sm shadow-inner">
                     </div>
                     <div class="col-span-2">
                         <label class="text-xs font-bold text-gray-600">ตำแหน่ง</label>
-                        <select id="edit-position" class="w-full p-2 rounded border border-gray-400 text-sm bg-white">
+                        <select id="edit-position" class="w-full p-2 rounded border border-gray-400 text-sm bg-white shadow-inner">
                             <option value="ประธานรุ่น">ประธานรุ่น</option>
                             <option value="รองประธาน">รองประธาน</option>
                             <option value="สมาชิก">สมาชิก</option>
@@ -286,11 +313,11 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs font-bold text-gray-600">ID Line</label>
-                        <input type="text" id="edit-line" class="w-full p-2 rounded border border-gray-400 text-sm font-mono">
+                        <input type="text" id="edit-line" class="w-full p-2 rounded border border-gray-400 text-sm font-mono shadow-inner">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-600">Instagram</label>
-                        <input type="text" id="edit-ig" class="w-full p-2 rounded border border-gray-400 text-sm font-mono">
+                        <input type="text" id="edit-ig" class="w-full p-2 rounded border border-gray-400 text-sm font-mono shadow-inner">
                     </div>
                 </div>
                 <button type="submit" id="save-edit-btn" class="keycap w-full py-2 mt-4 text-sm font-bold bg-green-200">SAVE_CHANGES</button>
@@ -298,18 +325,9 @@
         </div>
     </div>
 
-    <!-- Modal: Custom Alert แจ้งเตือนทั่วไป -->
-    <div id="alert-modal" class="fixed inset-0 modal-bg z-[70] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center text-center">
-            <h3 id="alert-title" class="thai-text text-xl font-bold mb-2 text-gray-800 uppercase tracking-wide">Title</h3>
-            <p id="alert-msg" class="thai-text text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">Message</p>
-            <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap px-8 py-2 text-sm font-bold text-gray-800">OK</button>
-        </div>
-    </div>
-
     <!-- Modal: Profile View กล่องข้อมูลเพื่อนๆ -->
     <div id="profile-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center">
+        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center animate-pop">
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
             
             <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#b5b5a6] rounded mb-4 bg-gray-300 shadow-inner">
@@ -383,7 +401,7 @@
         // NON-BLOCKING IMAGE FALLBACK LOGIC
         // ==========================================
         window.handleFallbackImg = function(imgElement, studentId, step) {
-            const exts = ['jpeg', 'jpg', 'png', 'webp'];
+            const exts = ['jpg', 'png', 'webp', 'gif']; 
             if (step < exts.length) {
                 imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1); };
                 imgElement.src = `assets/${studentId}.${exts[step]}`;
@@ -400,9 +418,6 @@
             document.getElementById(viewId).classList.remove('hidden');
             if(viewId === 'admin-view') renderAdminTable();
         }
-
-        // ดึงข้อมูลมาแสดงทันทีโดยไม่ต้องรอ Login
-        subscribeToData();
 
         // ====== AUTHENTICATION LOGIC ======
         window.handleAuth = async function(e, isRegister = false) {
@@ -453,7 +468,6 @@
             } catch(e) { console.error("Logout error", e); }
         }
 
-        // Handle Public Access vs Logged In
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const email = user.email || '';
@@ -477,13 +491,19 @@
             }
         });
 
-        // ====== FIRESTORE LOGIC ======
+        // ====== FIRESTORE LOGIC & SEARCH ======
         function subscribeToData() {
             const usersColRef = collection(db, USERS_PATH);
             onSnapshot(usersColRef, (snapshot) => {
                 membersData = [];
                 snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
-                renderTree(); 
+                
+                // อัปเดตยอดสมาชิก
+                document.getElementById('member-counter').innerText = `TOTAL MEMBERS: ${membersData.length}`;
+
+                // เรียกให้เรนเดอร์พร้อมกับ Search (ถ้ามีการพิมพ์ค้างไว้)
+                window.handleSearch(); 
+
                 if(!document.getElementById('admin-view').classList.contains('hidden')) {
                     renderAdminTable();
                 }
@@ -499,6 +519,26 @@
                 }
             });
         }
+
+        // ฟังก์ชัน Search แบบเรียลไทม์
+        window.handleSearch = function() {
+            const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
+            if(!query) {
+                renderTree(membersData);
+                return;
+            }
+
+            const filteredData = membersData.filter(m => {
+                const fullName = `${m.firstName || ''} ${m.lastName || ''}`.toLowerCase();
+                const nickname = (m.nickname || '').toLowerCase();
+                const studentId = (m.studentId || '').toLowerCase();
+                return fullName.includes(query) || nickname.includes(query) || studentId.includes(query);
+            });
+            renderTree(filteredData);
+        };
+
+        // เริ่มดึงข้อมูลทันทีไม่ต้องรอ Login
+        subscribeToData();
 
         // ====== ADMIN FUNCTIONS ======
         window.importCSV = function() {
@@ -592,7 +632,6 @@
                 return;
             }
 
-            // Sort by studentId
             const sortedData = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
 
             sortedData.forEach(member => {
@@ -603,7 +642,7 @@
                     <td class="px-4 py-3">${fullName} ${member.nickname ? `(${member.nickname})` : ''}</td>
                     <td class="px-4 py-3">${member.position}</td>
                     <td class="px-4 py-3">
-                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors">EDIT</button>
+                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors shadow">EDIT</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -650,34 +689,33 @@
         }
 
         // ====== RENDER TREE (Grid 3 Columns) ======
-        function renderTree() {
+        function renderTree(dataToRender = membersData) {
             const container = document.getElementById('tree-container');
-            if (membersData.length === 0) {
-                container.innerHTML = `<div class="text-center font-bold text-gray-500">NO DATA FOUND.</div>`; return;
+            if (dataToRender.length === 0) {
+                container.innerHTML = `<div class="text-center font-bold text-gray-500 py-10 animate-pop">NO DATA FOUND.</div>`; return;
             }
 
-            const presidents = membersData.filter(m => m.position === 'ประธานรุ่น');
-            const vps = membersData.filter(m => m.position === 'รองประธาน');
-            const members = membersData.filter(m => m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน');
+            const presidents = dataToRender.filter(m => m.position === 'ประธานรุ่น');
+            const vps = dataToRender.filter(m => m.position === 'รองประธาน');
+            const members = dataToRender.filter(m => m.position !== 'ประธานรุ่น' && m.position !== 'รองประธาน');
 
-            // Sort members by ID
             members.sort((a,b) => a.studentId.localeCompare(b.studentId));
 
-            let html = `<div class="flex flex-col items-center gap-6 md:gap-10 w-full">`;
+            let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
             
-            // ประธาน
+            // ประธาน (ปรับขนาดให้สมดุลบนมือถือ ไม่ใหญ่จนเกินไป)
             if (presidents.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
+                html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">
                             ${buildKeycapNode(presidents[0], 'president')}
                          </div>`;
             }
             // รองประธาน
             if (vps.length > 0) {
-                html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-xs px-2">
+                html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
-            // สมาชิก (Grid แถวละ 3 คงที่)
+            // สมาชิก (Grid แถวละ 3 คงที่ 100%)
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
@@ -696,7 +734,7 @@
             return `
                 <div class="keycap ${isPres ? 'president' : ''} p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
                     <img src="assets/${member.studentId}.jpeg" 
-                         onerror="window.handleFallbackImg(this, '${member.studentId}', 1)" 
+                         onerror="window.handleFallbackImg(this, '${member.studentId}', 0)" 
                          alt="Profile" 
                          class="profile-img mb-2 bg-gray-300">
                     <p class="thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-800 leading-tight text-center w-full truncate">${displayName}</p>
@@ -722,11 +760,11 @@
             document.getElementById('modal-ig').innerText = member.instagram || '-';
 
             const modalImg = document.getElementById('modal-img');
-            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 1); };
+            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 0); };
             modalImg.src = `assets/${member.studentId}.jpeg`;
 
             const statusForm = document.getElementById('status-form');
-            // เห็นฟอร์มสเตตัสเฉพาะตอนล็อกอินเป็นตัวเองเท่านั้น
+            // เช็คว่าคนที่คลิกคือเจ้าของบัญชีที่ล็อกอินอยู่หรือไม่
             if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden'); statusForm.classList.add('flex');
                 document.getElementById('status-input').value = member.status || '';
@@ -743,6 +781,7 @@
 
         window.updateStatus = async function(e) {
             e.preventDefault();
+            // ดับเบิ้ลเช็คความปลอดภัยก่อนส่งขึ้น Firebase
             if (!currentUser || currentUser.studentId !== window.currentProfileId) return;
 
             const btn = document.getElementById('status-btn');
