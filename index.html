@@ -67,51 +67,6 @@
             background: linear-gradient(180deg, #e0e0d5 0%, #d1d1c8 100%);
         }
 
-        /* President Keycap: Dark Charcoal / Terminal System Key */
-        .keycap.president {
-            background: linear-gradient(180deg, #454746 0%, #2f302f 100%);
-            border-color: #1a1a1a;
-            box-shadow: 
-                -1px -1px 2px rgba(255, 255, 255, 0.1) inset,
-                1px 1px 3px rgba(0, 0, 0, 0.5) inset,
-                0px 6px 0px #1a1a1a,
-                0px 8px 15px rgba(0, 0, 0, 0.5);
-        }
-        .keycap.president:active {
-            background: linear-gradient(180deg, #2f302f 0%, #1a1a1a 100%);
-            box-shadow: 
-                -1px -1px 2px rgba(255, 255, 255, 0.1) inset,
-                1px 1px 3px rgba(0, 0, 0, 0.6) inset,
-                0px 2px 0px #1a1a1a,
-                0px 3px 5px rgba(0, 0, 0, 0.5);
-        }
-        .keycap.president .name-text { color: #f5f5f0 !important; }
-        .keycap.president .pos-text { color: #4ade80 !important; text-shadow: 0 0 5px rgba(74,222,128,0.5); }
-        .keycap.president .border-t { border-color: #555 !important; }
-        .keycap.president .profile-img { border-color: #555; }
-
-        /* VP Keycap: Vintage Modifier Key (Grey) */
-        .keycap.vp {
-            background: linear-gradient(180deg, #c7c7c0 0%, #a8a8a0 100%);
-            border-color: #85857e;
-            box-shadow: 
-                -1px -1px 2px rgba(255, 255, 255, 0.7) inset,
-                1px 1px 3px rgba(0, 0, 0, 0.15) inset,
-                0px 6px 0px #7a7a73,
-                0px 8px 15px rgba(0, 0, 0, 0.4);
-        }
-        .keycap.vp:active {
-            background: linear-gradient(180deg, #a8a8a0 0%, #91918a 100%);
-            box-shadow: 
-                -1px -1px 2px rgba(255, 255, 255, 0.7) inset,
-                1px 1px 3px rgba(0, 0, 0, 0.2) inset,
-                0px 2px 0px #7a7a73,
-                0px 3px 5px rgba(0, 0, 0, 0.4);
-        }
-        .keycap.vp .pos-text { color: #b45309 !important; }
-        .keycap.vp .border-t { border-color: #94948a !important; }
-        .keycap.vp .profile-img { border-color: #94948a; }
-
         /* รูปโปรไฟล์ Full Color 3:4 */
         .profile-img {
             border: 2px solid #a3a39b;
@@ -225,12 +180,9 @@
     <!-- Navbar -->
     <nav class="bg-[#dfdfd5] border-b-4 border-[#a3a39b] px-4 md:px-6 py-2 flex justify-between items-center shadow-lg z-20 sticky top-0" id="navbar">
         <div class="flex items-center gap-4 cursor-pointer" onclick="switchView('directory-view')">
-            <!-- โลโก้ธรรมศาสตร์ -->
             <img src="assets/images.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain h-[45px] md:h-[65px]">
-            <!-- โลโก้ TSE (ใหญ่และชัดขึ้น) -->
             <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain h-[40px] md:h-[55px] hidden sm:block">
         </div>
-        <!-- เมนูปุ่มทางขวา -->
         <div class="flex gap-2 sm:gap-3 items-center flex-wrap justify-end">
             <button onclick="randomMember()" class="keycap px-2 md:px-3 py-1 md:py-2 text-[10px] md:text-sm font-bold text-purple-700">🎲 RANDOM</button>
             <button onclick="switchView('directory-view')" class="keycap px-2 md:px-3 py-1 md:py-2 text-[10px] md:text-sm font-bold">DIRECTORY</button>
@@ -252,7 +204,7 @@
                     
                     <!-- Retro Digital Counter -->
                     <div class="flex items-center gap-3 mt-4 bg-[#d1d1c8] px-4 py-2 rounded-lg shadow-inner border border-[#a3a39b]">
-                        <span class="text-xs md:text-sm text-gray-700 font-bold tracking-widest font-mono">TOTAL:</span>
+                        <span class="text-xs md:text-sm text-gray-700 font-bold tracking-widest font-mono">TOTAL MEMBERS:</span>
                         <div id="member-counter-digits" class="flex gap-1">
                             <div class="digit-box">0</div>
                             <div class="digit-box">0</div>
@@ -271,6 +223,19 @@
                     <div class="flex items-center justify-center h-40 text-gray-500 font-bold animate-pulse">LOADING DATABASE...</div>
                 </div>
             </div>
+
+            <!-- Visitor Counter 90s Style -->
+            <div class="mt-12 mb-4 w-full flex flex-col items-center justify-center animate-pop">
+                <p class="text-[10px] text-gray-500 font-bold mb-1 tracking-widest uppercase">VISITOR_COUNT</p>
+                <div class="flex bg-black p-1.5 rounded border-2 border-gray-700 shadow-[inset_0_0_10px_rgba(0,0,0,0.8)]" id="visitor-counter-container">
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                    <div class="text-red-500 font-mono text-xl md:text-2xl px-1">0</div>
+                </div>
+            </div>
         </div>
 
         <!-- 2. MEMORY BOARD VIEW -->
@@ -280,7 +245,6 @@
                 <h2 class="thai-text text-md md:text-xl text-gray-700 font-bold mt-2">กระดานความทรงจำ</h2>
             </header>
 
-            <!-- กล่องโพสต์ข้อความ (แสดงเมื่อล็อกอิน) -->
             <div id="memory-post-box" class="w-full bg-[#cbcbbf] p-4 md:p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.2)] mb-6 hidden border border-[#a3a39b]">
                 <form onsubmit="postMemory(event)" class="flex flex-col gap-3">
                     <label class="thai-text font-bold text-gray-800 text-sm">เขียนข้อความถึงเพื่อนๆ หรือความทรงจำในรุ่น...</label>
@@ -293,10 +257,7 @@
                 <button onclick="switchView('auth-view')" class="underline text-blue-700 hover:text-blue-500">ล็อกอิน</button> เพื่อร่วมโพสต์และตอบกลับความทรงจำ
             </div>
 
-            <!-- รายการข้อความ -->
-            <div id="memory-list" class="w-full flex flex-col gap-5">
-                <!-- Memories render here -->
-            </div>
+            <div id="memory-list" class="w-full flex flex-col gap-5"></div>
         </div>
 
         <!-- 3. AUTHENTICATION VIEW -->
@@ -326,8 +287,11 @@
         <!-- 4. ADMIN PANEL VIEW -->
         <div id="admin-view" class="w-full max-w-6xl hidden animate-pop">
             <div class="bg-[#e8e8df] p-6 rounded-xl border-t-2 border-l-2 border-white border-opacity-80 shadow-[4px_4px_12px_rgba(0,0,0,0.15)] mb-8">
-                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <span class="bg-red-600 w-3 h-3 rounded-full inline-block shadow-[0_0_8px_rgba(220,38,38,0.8)] animate-pulse"></span> ADMIN CONTROL PANEL
+                <h2 class="text-2xl font-bold mb-4 flex items-center gap-2 justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-red-600 w-3 h-3 rounded-full inline-block shadow-[0_0_8px_rgba(220,38,38,0.8)] animate-pulse"></span> ADMIN CONTROL PANEL
+                    </div>
+                    <button onclick="exportCSV()" class="keycap py-1 px-4 text-xs font-bold bg-green-200 text-green-900">⬇️ EXPORT_CSV</button>
                 </h2>
                 
                 <div class="bg-[#cbcbbf] p-4 rounded-lg shadow-[inset_2px_4px_6px_rgba(0,0,0,0.2)] border border-[#a3a39b] mb-6">
@@ -425,10 +389,7 @@
             <h2 id="modal-name" class="thai-text text-xl font-bold text-gray-900 text-center w-full drop-shadow-sm"></h2>
             <p id="modal-nickname" class="thai-text text-sm text-gray-600 font-bold"></p>
             
-            <!-- Tags display -->
             <div id="modal-tags" class="flex flex-wrap justify-center gap-1 my-2"></div>
-            
-            <!-- ฉายา Display -->
             <div id="modal-nicknames-list" class="w-full text-center mb-3 min-h-[24px]"></div>
 
             <div class="bg-[#cbcbbf] w-full p-4 rounded-lg shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2)] border border-[#a3a39b] mb-4 thai-text text-sm flex flex-col gap-2">
@@ -466,11 +427,60 @@
                 </div>
             </form>
 
-            <!-- ฟอร์มอัปเดตสเตตัส (เห็นเฉพาะเจ้าของ) -->
+            <!-- ฟอร์มอัปเดตสเตตัส และปุ่มอัปเดตโปรไฟล์ (เห็นเฉพาะเจ้าของ) -->
             <form id="status-form" onsubmit="updateStatus(event)" class="w-full hidden flex-col gap-2">
                 <label class="thai-text text-xs font-bold text-green-800">อัปเดตสเตตัสส่วนตัว (LED Display)</label>
                 <input type="text" id="status-input" class="cmd-input !py-2 !text-sm" placeholder="พิมพ์ข้อความสั้นๆ..." maxlength="30">
-                <button type="submit" id="status-btn" class="keycap py-2 text-sm font-bold bg-green-300 text-green-900 w-full mt-1">UPDATE_STATUS</button>
+                <div class="flex gap-2 mt-1">
+                    <button type="submit" id="status-btn" class="keycap py-2 text-xs font-bold bg-green-300 text-green-900 flex-1">UPDATE_STATUS</button>
+                    <button type="button" onclick="openUserEditModal()" class="keycap py-2 text-xs font-bold bg-blue-200 text-blue-900 flex-1">EDIT_PROFILE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Edit User (Self Profile) -->
+    <div id="user-edit-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-[#e8e8df] w-full max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 animate-pop max-h-[90vh] overflow-y-auto">
+            <button onclick="closeUserEditModal()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 bg-gray-200">X</button>
+            <h3 class="thai-text text-xl font-bold mb-4 flex items-center gap-2"><span class="bg-blue-500 w-3 h-3 rounded-full inline-block"></span> อัปเดตข้อมูลส่วนตัว</h3>
+            
+            <form id="user-edit-form" onsubmit="saveUserProfile(event)" class="flex flex-col gap-3 thai-text">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">ชื่อ</label>
+                        <input type="text" id="user-edit-firstname" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">นามสกุล</label>
+                        <input type="text" id="user-edit-lastname" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">ชื่อเล่น</label>
+                        <input type="text" id="user-edit-nickname" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">วันเกิด</label>
+                        <input type="date" id="user-edit-birthdate" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-700">แท็ก/สายรหัส (คั่นด้วย ,)</label>
+                    <input type="text" id="user-edit-tags" placeholder="เช่น 034, สายกิน" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm shadow-inner outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">ID Line</label>
+                        <input type="text" id="user-edit-line" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm font-mono shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-700">Instagram</label>
+                        <input type="text" id="user-edit-ig" class="w-full p-2 rounded border border-[#a3a39b] bg-white text-sm font-mono shadow-inner outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <button type="submit" id="save-user-edit-btn" class="keycap w-full py-2 mt-4 text-sm font-bold bg-blue-200 text-blue-900">SAVE_PROFILE</button>
             </form>
         </div>
     </div>
@@ -479,7 +489,7 @@
     <div id="edit-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-[#e8e8df] w-full max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 animate-pop max-h-[90vh] overflow-y-auto">
             <button onclick="closeEditModal()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 bg-gray-200">X</button>
-            <h3 class="thai-text text-xl font-bold mb-4">แก้ไขข้อมูลสมาชิก</h3>
+            <h3 class="thai-text text-xl font-bold mb-4">แก้ไขข้อมูลสมาชิก (Admin)</h3>
             
             <form id="edit-user-form" onsubmit="saveUserEdit(event)" class="flex flex-col gap-3 thai-text">
                 <input type="hidden" id="edit-id">
@@ -532,13 +542,11 @@
         </div>
     </div>
 
-    <!-- ----------------------------------------------------------- -->
     <!-- JAVASCRIPT & FIREBASE INTEGRATION -->
-    <!-- ----------------------------------------------------------- -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, addDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
@@ -557,12 +565,53 @@
         const APP_ID = 'class-directory-cn25'; 
         const USERS_PATH = `artifacts/${APP_ID}/public/data/users`; 
         const MEMORIES_PATH = `artifacts/${APP_ID}/public/data/memories`;
+        const STATS_PATH = `artifacts/${APP_ID}/public/data/stats`;
         const ADMIN_ID = '6910616249';
         
         let currentUser = null;
         let membersData = [];
         let memoriesData = [];
         window.currentProfileId = null;
+
+        // --- Visitor Counter Logic ---
+        async function updateVisitorCount() {
+            try {
+                const statRef = doc(db, STATS_PATH, 'visitorCount');
+                const statSnap = await getDoc(statRef);
+                let currentCount = 0;
+                
+                if (!statSnap.exists()) {
+                    await setDoc(statRef, { count: 1 });
+                    currentCount = 1;
+                    sessionStorage.setItem('visited_cn25', 'true');
+                } else {
+                    if (!sessionStorage.getItem('visited_cn25')) {
+                        await updateDoc(statRef, { count: increment(1) });
+                        sessionStorage.setItem('visited_cn25', 'true');
+                        currentCount = statSnap.data().count + 1;
+                    } else {
+                        currentCount = statSnap.data().count;
+                    }
+                }
+                
+                renderVisitorCount(currentCount);
+            } catch(e) { console.error("Visitor count error", e); }
+        }
+
+        function renderVisitorCount(count) {
+            const countStr = count.toString().padStart(6, '0');
+            const container = document.getElementById('visitor-counter-container');
+            if(container) {
+                container.innerHTML = countStr.split('').map(d => `<div class="text-red-500 font-mono text-xl md:text-2xl px-1">${d}</div>`).join('');
+            }
+        }
+        
+        // Listen to Visitor Count changes in realtime
+        onSnapshot(doc(db, STATS_PATH, 'visitorCount'), (docSnap) => {
+            if (docSnap.exists()) renderVisitorCount(docSnap.data().count || 0);
+        });
+        
+        updateVisitorCount();
 
         // --- UI Utils ---
         window.addEventListener('scroll', () => {
@@ -730,7 +779,6 @@
             membersData = [];
             snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
             
-            // อัปเดตตัวเลข Retro Counter (เติมเลข 0 ด้านหน้าให้ครบ 3 หลักเสมอ)
             const countStr = membersData.length.toString().padStart(3, '0');
             const counterContainer = document.getElementById('member-counter-digits');
             if (counterContainer) {
@@ -903,17 +951,14 @@
                         </div>
                         <p class="thai-text text-gray-900 text-sm whitespace-pre-line py-2">${mem.message}</p>
                         
-                        <!-- Actions -->
                         <div class="flex justify-end gap-3 mt-1">
                             ${replyBtn}
                         </div>
 
-                        <!-- Replies Area -->
                         <div class="w-full flex flex-col gap-1 mt-1">
                             ${repliesHtml}
                         </div>
 
-                        <!-- Reply Input Form -->
                         <form id="reply-form-${mem.id}" onsubmit="postReply(event, '${mem.id}')" class="hidden mt-3 ml-4 md:ml-8 flex flex-col gap-2 bg-[#d1d1c8] p-3 rounded-lg border-2 border-[#a3a39b] shadow-inner">
                             <textarea id="reply-input-${mem.id}" class="cmd-input !text-sm !h-16 resize-none" placeholder="> ตอบกลับข้อความนี้..." required maxlength="200"></textarea>
                             <button type="submit" class="keycap py-1 text-xs font-bold bg-purple-300 text-purple-900 w-28 self-end">SEND_REPLY</button>
@@ -952,24 +997,23 @@
 
             let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
             
-            // นำประธานและรองประธานมารวมกันจัดไว้ด้านบน
+            // นำประธานและรองประธานมารวมกันจัดไว้ด้านบน และจัดให้อยู่คู่กันหรือตรงกลาง
             const leaders = [...presidents, ...vps];
             if (leaders.length > 0) {
-                // ใช้ flex justify-center เพื่อให้ถ้ามีคนเดียวจะอยู่ตรงกลาง ถ้ามีสองคนจะอยู่คู่กัน
                 html += `<div class="flex justify-center gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 leaders.forEach(m => {
-                    // กำหนดขนาดความกว้างให้เท่ากับช่อง grid-cols-3 ของสมาชิกพอดี และลบสีพิเศษออก (type='normal')
+                    // กำหนดขนาดความกว้างให้เท่ากับสมาชิกปกติ (1 ใน 3 คอลัมน์) เสมอ
                     html += `<div class="w-[32%] sm:w-[32%] md:w-[32.5%] flex-shrink-0">
-                                ${buildKeycapNode(m, 'normal')}
+                                ${buildKeycapNode(m)}
                              </div>`;
                 });
                 html += `</div>`;
             }
 
-            // สมาชิกแสดงใน Grid 3 คอลัมน์ด้านล่าง
+            // สมาชิกแสดงใน Grid 3 คอลัมน์ด้านล่างต่อลงมา
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
-                members.forEach(m => html += buildKeycapNode(m, 'normal'));
+                members.forEach(m => html += buildKeycapNode(m));
                 html += `</div>`;
             }
             
@@ -977,20 +1021,19 @@
             container.innerHTML = html;
         }
 
-        window.buildKeycapNode = function(member, type = 'normal') {
-            const isPres = type === 'president';
-            const isVP = type === 'vp';
+        window.buildKeycapNode = function(member) {
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || 'ไม่ระบุชื่อ';
             const fnameParam = member.firstName ? member.firstName.replace(/'/g, "\\'") : '';
             const bdayIcon = isBirthday(member.birthdate) ? `<span class="absolute -top-3 -right-3 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] z-20 animate-bounce">🎂</span>` : '';
             
             let ledHtml = '';
-            if (isPres) ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#4ade80] shadow-[0_0_5px_rgba(74,222,128,0.8)] animate-pulse mr-1.5"></span>`;
-            if (isVP) ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#f59e0b] shadow-[0_0_5px_rgba(245,158,11,0.8)] mr-1.5"></span>`;
+            if (member.position === 'ประธานรุ่น') ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#4ade80] shadow-[0_0_5px_rgba(74,222,128,0.8)] animate-pulse mr-1.5"></span>`;
+            if (member.position === 'รองประธาน') ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#f59e0b] shadow-[0_0_5px_rgba(245,158,11,0.8)] mr-1.5"></span>`;
 
+            // ลบ class พิเศษออก ให้ใช้ .keycap เหมือนสมาชิกทั่วไป 100%
             return `
-                <div class="keycap ${isPres ? 'president' : isVP ? 'vp' : ''} p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
+                <div class="keycap p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
                     ${bdayIcon}
                     <img src="assets/${member.studentId}.jpeg" 
                          onerror="window.handleFallbackImg(this, '${member.studentId}', 0, '${fnameParam}')" 
@@ -1104,10 +1147,7 @@
             btn.innerText = "EXPORTING..."; btn.disabled = true;
 
             try {
-                // แปลงข้อมูล Object กลับเป็นรูปแบบ CSV (รองรับภาษาไทย)
                 const csv = window.Papa.unparse(membersData, { quotes: true });
-                
-                // ใส่ BOM (\uFEFF) นำหน้า เพื่อบังคับให้ Excel อ่านเป็น UTF-8 (ภาษาไทยจะได้ไม่เพี้ยนเป็นตัวยึกยือ)
                 const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
@@ -1117,7 +1157,7 @@
                 link.click();
                 document.body.removeChild(link);
                 
-                showAlert("สำเร็จ", "ดาวน์โหลดข้อมูลเป็นไฟล์ CSV เรียบร้อยแล้ว\n(สามารถเปิดด้วยโปรแกรม Excel ได้เลย)");
+                showAlert("สำเร็จ", "ดาวน์โหลดข้อมูลเป็นไฟล์ CSV เรียบร้อยแล้ว");
             } catch(e) {
                 showAlert("ข้อผิดพลาด", "ไม่สามารถดาวน์โหลดไฟล์ได้");
             } finally {
@@ -1252,6 +1292,55 @@
                 closeEditModal();
             } catch (error) { showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกได้"); } 
             finally { btn.innerText = "SAVE_CHANGES"; btn.disabled = false; }
+        }
+
+        // --- User Profile Edit Functions (เจ้าของแก้ไขเอง) ---
+        window.openUserEditModal = function() {
+            if (!currentUser || !window.currentProfileId) return;
+            const member = membersData.find(m => m.studentId === window.currentProfileId);
+            if (!member) return;
+            
+            document.getElementById('user-edit-firstname').value = member.firstName || '';
+            document.getElementById('user-edit-lastname').value = member.lastName || '';
+            document.getElementById('user-edit-nickname').value = member.nickname || '';
+            document.getElementById('user-edit-birthdate').value = member.birthdate || '';
+            document.getElementById('user-edit-tags').value = member.tags || '';
+            document.getElementById('user-edit-line').value = member.lineId || '';
+            document.getElementById('user-edit-ig').value = member.instagram || '';
+            
+            document.getElementById('profile-modal').classList.add('hidden');
+            document.getElementById('user-edit-modal').classList.remove('hidden');
+        }
+
+        window.closeUserEditModal = function() {
+            document.getElementById('user-edit-modal').classList.add('hidden');
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+
+        window.saveUserProfile = async function(e) {
+            e.preventDefault();
+            if (!currentUser || !window.currentProfileId) return;
+            
+            const btn = document.getElementById('save-user-edit-btn');
+            btn.innerText = "SAVING..."; btn.disabled = true;
+            
+            try {
+                await updateDoc(doc(db, USERS_PATH, window.currentProfileId), {
+                    firstName: document.getElementById('user-edit-firstname').value.trim(),
+                    lastName: document.getElementById('user-edit-lastname').value.trim(),
+                    nickname: document.getElementById('user-edit-nickname').value.trim(),
+                    birthdate: document.getElementById('user-edit-birthdate').value,
+                    tags: document.getElementById('user-edit-tags').value.trim(),
+                    lineId: document.getElementById('user-edit-line').value.trim(),
+                    instagram: document.getElementById('user-edit-ig').value.trim()
+                });
+                closeUserEditModal();
+                setTimeout(() => window.openProfile(window.currentProfileId), 300);
+            } catch (error) { 
+                showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่"); 
+            } finally { 
+                btn.innerText = "SAVE_PROFILE"; btn.disabled = false; 
+            }
         }
     </script>
 </body>
