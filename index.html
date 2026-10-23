@@ -153,6 +153,31 @@
             border-left: 4px solid #8b5cf6;
             box-shadow: inset 1px 1px 3px rgba(255,255,255,0.6), 1px 1px 4px rgba(0,0,0,0.1);
         }
+
+        /* Mechanical Retro Counter Style */
+        .digit-box {
+            background: linear-gradient(180deg, #222 0%, #000 50%, #111 51%, #000 100%);
+            color: #eab308;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.3);
+            line-height: 1;
+            text-shadow: 0 0 5px rgba(234, 179, 8, 0.5);
+            position: relative;
+        }
+        .digit-box::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1.5px;
+            background: rgba(0, 0, 0, 0.7);
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col relative">
@@ -184,7 +209,16 @@
                 <div class="text-center z-10 w-full flex flex-col items-center">
                     <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222] drop-shadow-sm">CLASS DIRECTORY CN25</h1>
                     <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
-                    <p id="member-counter" class="text-xs md:text-sm text-gray-500 font-bold mt-3 bg-[#d1d1c8] px-4 py-1.5 rounded-full shadow-inner border border-[#a3a39b]">TOTAL MEMBERS: 0</p>
+                    
+                    <!-- Retro Digital Counter -->
+                    <div class="flex items-center gap-3 mt-4 bg-[#d1d1c8] px-4 py-2 rounded-lg shadow-inner border border-[#a3a39b]">
+                        <span class="text-xs md:text-sm text-gray-700 font-bold tracking-widest font-mono">TOTAL:</span>
+                        <div id="member-counter-digits" class="flex gap-1">
+                            <div class="digit-box">0</div>
+                            <div class="digit-box">0</div>
+                            <div class="digit-box">0</div>
+                        </div>
+                    </div>
                     
                     <div class="mt-6 w-full max-w-md relative">
                         <input type="text" id="search-input" onkeyup="handleSearch()" placeholder="> SEARCH NAME, ID OR TAGS..." class="cmd-input !py-3 !text-sm text-center w-full" autocomplete="off">
@@ -655,7 +689,14 @@
         onSnapshot(collection(db, USERS_PATH), (snapshot) => {
             membersData = [];
             snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
-            document.getElementById('member-counter').innerText = `TOTAL MEMBERS: ${membersData.length}`;
+            
+            // อัปเดตตัวเลข Retro Counter (เติมเลข 0 ด้านหน้าให้ครบ 3 หลักเสมอ)
+            const countStr = membersData.length.toString().padStart(3, '0');
+            const counterContainer = document.getElementById('member-counter-digits');
+            if (counterContainer) {
+                counterContainer.innerHTML = countStr.split('').map(d => `<div class="digit-box">${d}</div>`).join('');
+            }
+
             window.handleSearch(); 
             if(!document.getElementById('admin-view').classList.contains('hidden')) renderAdminTable();
             
@@ -870,8 +911,8 @@
             members.sort((a,b) => a.studentId.localeCompare(b.studentId));
 
             let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
-            if (presidents.length > 0) html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">${buildKeycapNode(presidents[0], 'president')}</div>`;
-            if (vps.length > 0) html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">${buildKeycapNode(vps[0], 'normal')}</div>`;
+            if (presidents.length > 0) html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-[280px] px-2">${buildKeycapNode(presidents[0], 'president')}</div>`;
+            if (vps.length > 0) html += `<div class="flex justify-center w-full max-w-[180px] md:max-w-[260px] px-2">${buildKeycapNode(vps[0], 'normal')}</div>`;
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
