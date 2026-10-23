@@ -32,6 +32,7 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
         .thai-text { font-family: 'Sarabun', 'IBM Plex Mono', sans-serif; }
@@ -67,7 +68,7 @@
             border-color: #b5b5a6;
         }
 
-        /* รูปโปรไฟล์ Full Color ไม่บล็อกขาวดำ */
+        /* รูปโปรไฟล์ Full Color */
         .profile-img {
             border: 2px solid #b5b5a6;
             background-color: #d1d1c8;
@@ -126,20 +127,27 @@
         .animate-pop {
             animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+
+        /* Copy action styling */
+        .copy-hover:hover {
+            background-color: #c4c4b9;
+            cursor: pointer;
+            border-radius: 4px;
+        }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col relative">
 
     <!-- Navbar -->
-    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0 relative" id="navbar">
-        <div class="flex items-center gap-2 md:gap-4 cursor-pointer" onclick="switchView('directory-view')">
+    <nav class="bg-[#dfdfd5] border-b-4 border-[#b5b5a6] px-4 md:px-6 py-2 flex justify-between items-center shadow-md z-20 sticky top-0" id="navbar">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="switchView('directory-view')">
             <!-- โลโก้ธรรมศาสตร์ -->
-            <img src="assets/images.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x60/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain h-[50px] md:h-[75px]">
-            <!-- โลโก้ TSE ขยายขนาดและล็อกขวา -->
-            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain w-28 md:w-48 absolute right-2 md:right-10 top-1/2 transform -translate-y-1/2">
+            <img src="assets/images.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain h-[50px] md:h-[75px]">
+            <!-- โลโก้ TSE ย้ายมาอยู่ติดกับโลโก้ธรรมศาสตร์ -->
+            <img src="assets/LogoTSE37.png" style="mix-blend-mode: multiply;" onerror="this.onerror=null; this.style.display='none';" alt="TSE Logo" class="object-contain h-[50px] md:h-[75px]">
         </div>
-        <!-- เมนูปุ่มทางขวา (เว้นที่ให้โลโก้ TSE) -->
-        <div class="flex gap-2 sm:gap-4 items-center mr-32 md:mr-56">
+        <!-- เมนูปุ่มทางขวา -->
+        <div class="flex gap-2 sm:gap-4 items-center">
             <button onclick="switchView('directory-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold">DIRECTORY</button>
             <button id="admin-nav-btn" onclick="switchView('admin-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-red-700 hidden">ADMIN</button>
             <button id="login-nav-btn" onclick="switchView('auth-view')" class="keycap px-3 py-2 text-xs md:text-sm font-bold text-blue-800">SYSTEM_LOGIN</button>
@@ -147,11 +155,11 @@
         </div>
     </nav>
 
-    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-start w-full">
+    <main class="flex-grow p-4 sm:p-8 flex flex-col items-center justify-start w-full relative">
 
         <!-- 1. DIRECTORY VIEW (Default) -->
         <div id="directory-view" class="w-full max-w-6xl flex flex-col items-center">
-            <!-- Header ป้ายชื่อรุ่นสะอาดตา -->
+            <!-- Header ป้ายชื่อรุ่นสะอาดตา (ไม่มีโลโก้จางแล้ว) -->
             <header class="flex flex-col items-center justify-center bg-[#dfdfd5] p-6 md:p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-60 shadow-[4px_4px_10px_rgba(0,0,0,0.1)] mb-8 w-full relative">
                 <div class="text-center z-10 w-full flex flex-col items-center">
                     <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222]">CLASS DIRECTORY CN25</h1>
@@ -174,8 +182,8 @@
 
         <!-- 2. AUTHENTICATION VIEW -->
         <div id="auth-view" class="w-full max-w-md bg-[#cbcbbf] p-6 rounded-xl shadow-[inset_2px_4px_6px_rgba(0,0,0,0.15),inset_-2px_-2px_4px_rgba(255,255,255,0.5),1px_1px_0px_rgba(255,255,255,0.7)] mt-10 hidden animate-pop">
-            <div class="flex justify-center mb-6">
-                <img src="assets/images.png" style="mix-blend-mode: multiply; width: 120px;" onerror="this.onerror=null; this.src='https://placehold.co/120x120/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
+            <div class="flex justify-center mb-6 gap-4">
+                <img src="assets/images.png" style="mix-blend-mode: multiply; height: 80px;" onerror="this.onerror=null; this.src='https://placehold.co/80x80/d1d1c8/333333?text=TU';" alt="TU Logo" class="object-contain">
             </div>
             <h1 class="text-2xl font-bold text-center mb-2">SYSTEM LOGIN</h1>
             <p class="text-center text-sm mb-6 thai-text">ล็อกอินเพื่อแก้ไขสเตตัส หรือลงทะเบียนใหม่<br><span class="text-xs text-gray-500">(ใช้รหัสนักศึกษา 10 หลัก)</span></p>
@@ -269,12 +277,60 @@
 
     </main>
 
+    <!-- Back to top button -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 keycap hidden px-4 py-3 text-xs md:text-sm font-bold z-50 transition-opacity duration-300 opacity-0" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        ▲ TOP
+    </button>
+
     <!-- Modal: Custom Alert แจ้งเตือนทั่วไป -->
     <div id="alert-modal" class="fixed inset-0 modal-bg z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center text-center animate-pop">
             <h3 id="alert-title" class="thai-text text-xl font-bold mb-2 text-gray-800 uppercase tracking-wide">Title</h3>
             <p id="alert-msg" class="thai-text text-sm text-gray-600 mb-6 font-medium whitespace-pre-line">Message</p>
             <button onclick="document.getElementById('alert-modal').classList.add('hidden')" class="keycap px-8 py-2 text-sm font-bold text-gray-800">OK</button>
+        </div>
+    </div>
+
+    <!-- Modal: Profile View กล่องข้อมูลเพื่อนๆ -->
+    <div id="profile-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center animate-pop">
+            <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
+            
+            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#b5b5a6] rounded mb-4 bg-gray-300 shadow-inner">
+            
+            <h2 id="modal-name" class="thai-text text-xl font-bold text-gray-800 text-center w-full"></h2>
+            <p id="modal-nickname" class="thai-text text-sm text-gray-600 font-bold mb-3"></p>
+            
+            <div class="bg-[#cbcbbf] w-full p-4 rounded shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)] border border-gray-400 mb-4 thai-text text-sm flex flex-col gap-2">
+                <div class="flex justify-between border-b border-gray-400 pb-1">
+                    <span class="font-bold text-gray-700">ID:</span> <span id="modal-id" class="font-mono text-gray-900"></span>
+                </div>
+                <div class="flex justify-between border-b border-gray-400 pb-1">
+                    <span class="font-bold text-gray-700">ตำแหน่ง:</span> <span id="modal-position" class="text-gray-900"></span>
+                </div>
+                <!-- Click to copy logic added to Line and IG -->
+                <div class="flex justify-between border-b border-gray-400 pb-1 copy-hover px-1 -mx-1" onclick="copyContact('modal-line')">
+                    <span class="font-bold text-gray-700">LINE:</span> 
+                    <span class="flex items-center gap-2">
+                        <span id="modal-line" class="font-mono text-blue-700 font-bold"></span>
+                        <span class="text-[10px] bg-gray-300 px-1 rounded text-gray-600 hidden" id="copied-line">COPIED!</span>
+                    </span>
+                </div>
+                <div class="flex justify-between copy-hover px-1 -mx-1" onclick="copyContact('modal-ig')">
+                    <span class="font-bold text-gray-700">IG:</span> 
+                    <span class="flex items-center gap-2">
+                        <span id="modal-ig" class="font-mono text-pink-700 font-bold"></span>
+                        <span class="text-[10px] bg-gray-300 px-1 rounded text-gray-600 hidden" id="copied-ig">COPIED!</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- ฟอร์มอัปเดตสเตตัส (เห็นเฉพาะเจ้าของที่ล็อกอิน) -->
+            <form id="status-form" onsubmit="updateStatus(event)" class="w-full hidden flex-col gap-2">
+                <label class="thai-text text-xs font-bold text-gray-700">อัปเดตสเตตัสส่วนตัว (LED Display)</label>
+                <input type="text" id="status-input" class="cmd-input !py-2 !text-sm" placeholder="พิมพ์ข้อความสั้นๆ..." maxlength="30">
+                <button type="submit" id="status-btn" class="keycap py-2 text-sm font-bold bg-green-200 w-full mt-1">UPDATE_STATUS</button>
+            </form>
         </div>
     </div>
 
@@ -325,40 +381,6 @@
         </div>
     </div>
 
-    <!-- Modal: Profile View กล่องข้อมูลเพื่อนๆ -->
-    <div id="profile-modal" class="fixed inset-0 modal-bg z-[60] hidden flex items-center justify-center p-4">
-        <div class="bg-[#dfdfd5] w-full max-w-sm rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center animate-pop">
-            <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600">X</button>
-            
-            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#b5b5a6] rounded mb-4 bg-gray-300 shadow-inner">
-            
-            <h2 id="modal-name" class="thai-text text-xl font-bold text-gray-800 text-center w-full"></h2>
-            <p id="modal-nickname" class="thai-text text-sm text-gray-600 font-bold mb-3"></p>
-            
-            <div class="bg-[#cbcbbf] w-full p-4 rounded shadow-[inset_1px_1px_3px_rgba(0,0,0,0.2)] border border-gray-400 mb-4 thai-text text-sm flex flex-col gap-2">
-                <div class="flex justify-between border-b border-gray-400 pb-1">
-                    <span class="font-bold text-gray-700">ID:</span> <span id="modal-id" class="font-mono text-gray-900"></span>
-                </div>
-                <div class="flex justify-between border-b border-gray-400 pb-1">
-                    <span class="font-bold text-gray-700">ตำแหน่ง:</span> <span id="modal-position" class="text-gray-900"></span>
-                </div>
-                <div class="flex justify-between border-b border-gray-400 pb-1">
-                    <span class="font-bold text-gray-700">LINE:</span> <span id="modal-line" class="font-mono text-blue-700 font-bold"></span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="font-bold text-gray-700">IG:</span> <span id="modal-ig" class="font-mono text-pink-700 font-bold"></span>
-                </div>
-            </div>
-
-            <!-- ฟอร์มอัปเดตสเตตัส (เห็นเฉพาะเจ้าของที่ล็อกอิน) -->
-            <form id="status-form" onsubmit="updateStatus(event)" class="w-full hidden flex-col gap-2">
-                <label class="thai-text text-xs font-bold text-gray-700">อัปเดตสเตตัสส่วนตัว (LED Display)</label>
-                <input type="text" id="status-input" class="cmd-input !py-2 !text-sm" placeholder="พิมพ์ข้อความสั้นๆ..." maxlength="30">
-                <button type="submit" id="status-btn" class="keycap py-2 text-sm font-bold bg-green-200 w-full mt-1">UPDATE_STATUS</button>
-            </form>
-        </div>
-    </div>
-
     <!-- ----------------------------------------------------------- -->
     <!-- JAVASCRIPT & FIREBASE INTEGRATION -->
     <!-- ----------------------------------------------------------- -->
@@ -367,7 +389,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
             authDomain: "class-directory-3b8c9.firebaseapp.com",
@@ -390,7 +411,40 @@
         let membersData = [];
         window.currentProfileId = null;
 
-        // Custom Alert Wrapper
+        // --- Back to top logic ---
+        window.addEventListener('scroll', () => {
+            const btn = document.getElementById('back-to-top');
+            if (window.scrollY > 300) {
+                btn.classList.remove('hidden');
+                setTimeout(() => btn.classList.remove('opacity-0'), 10);
+            } else {
+                btn.classList.add('opacity-0');
+                setTimeout(() => btn.classList.add('hidden'), 300);
+            }
+        });
+
+        // --- Click to Copy Logic ---
+        window.copyContact = function(elementId) {
+            const textToCopy = document.getElementById(elementId).innerText;
+            if(!textToCopy || textToCopy === '-') return;
+
+            // Use legacy method for wider iframe/mobile support
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                // Show copied badge
+                const badge = document.getElementById(elementId.replace('modal-', 'copied-'));
+                badge.classList.remove('hidden');
+                setTimeout(() => badge.classList.add('hidden'), 1500);
+            } catch (err) {
+                console.error('Failed to copy', err);
+            }
+            document.body.removeChild(textArea);
+        };
+
         window.showAlert = function(title, msg) {
             document.getElementById('alert-title').innerText = title;
             document.getElementById('alert-msg').innerText = msg;
@@ -398,16 +452,18 @@
         }
 
         // ==========================================
-        // NON-BLOCKING IMAGE FALLBACK LOGIC
+        // SMART IMAGE FALLBACK (นามสกุลไฟล์ + ชื่อย่ออัตโนมัติ)
         // ==========================================
-        window.handleFallbackImg = function(imgElement, studentId, step) {
+        window.handleFallbackImg = function(imgElement, studentId, step, firstNameStr) {
             const exts = ['jpg', 'png', 'webp', 'gif']; 
             if (step < exts.length) {
-                imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1); };
+                imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1, firstNameStr); };
                 imgElement.src = `assets/${studentId}.${exts[step]}`;
             } else {
                 imgElement.onerror = null;
-                imgElement.src = `https://ui-avatars.com/api/?name=${studentId}&background=d1d1c8&color=333&size=200`;
+                // ถ้าไม่เจอรูปเลย ให้ใช้ตัวอักษรแรกของชื่อมาสร้างเป็นรูปโปรไฟล์เท่ๆ
+                const nameToUse = firstNameStr ? encodeURIComponent(firstNameStr) : studentId;
+                imgElement.src = `https://ui-avatars.com/api/?name=${nameToUse}&background=d1d1c8&color=333&size=200&font-family=Sarabun`;
             }
         };
 
@@ -419,7 +475,6 @@
             if(viewId === 'admin-view') renderAdminTable();
         }
 
-        // ====== AUTHENTICATION LOGIC ======
         window.handleAuth = async function(e, isRegister = false) {
             e.preventDefault();
             const idInput = document.getElementById('auth-id').value.trim();
@@ -429,14 +484,11 @@
             
             if (idInput.length !== 10) {
                 errorDiv.innerText = "รหัสนักศึกษาต้องมี 10 หลัก";
-                errorDiv.classList.remove('hidden');
-                return;
+                errorDiv.classList.remove('hidden'); return;
             }
-
             errorDiv.classList.add('hidden');
             const originalText = loginBtn.innerText;
-            loginBtn.innerText = "PROCESSING...";
-            loginBtn.disabled = true;
+            loginBtn.innerText = "PROCESSING..."; loginBtn.disabled = true;
 
             const emailFormat = `${idInput}@dome.tu.ac.th`;
 
@@ -453,35 +505,27 @@
                 if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') errorMsg = "รหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ลงทะเบียน";
                 if (error.code === 'auth/weak-password') errorMsg = "รหัสผ่านอ่อนเกินไป (ต้องมี 6 ตัวขึ้นไป)";
                 
-                errorDiv.innerText = errorMsg;
-                errorDiv.classList.remove('hidden');
+                errorDiv.innerText = errorMsg; errorDiv.classList.remove('hidden');
             } finally {
-                loginBtn.innerText = originalText;
-                loginBtn.disabled = false;
+                loginBtn.innerText = originalText; loginBtn.disabled = false;
             }
         }
 
         window.logout = async function() {
-            try {
-                await signOut(auth);
-                switchView('directory-view');
-            } catch(e) { console.error("Logout error", e); }
+            try { await signOut(auth); switchView('directory-view'); } catch(e) { }
         }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 const email = user.email || '';
                 const studentId = email.split('@')[0]; 
-                
                 currentUser = { uid: user.uid, studentId: studentId, isAdmin: (studentId === ADMIN_ID) };
                 
                 document.getElementById('login-nav-btn').classList.add('hidden');
                 document.getElementById('logout-nav-btn').classList.remove('hidden');
                 if (currentUser.isAdmin) document.getElementById('admin-nav-btn').classList.remove('hidden');
                 
-                if(!document.getElementById('auth-view').classList.contains('hidden')){
-                    switchView('directory-view');
-                }
+                if(!document.getElementById('auth-view').classList.contains('hidden')){ switchView('directory-view'); }
                 document.getElementById('auth-form').reset();
             } else {
                 currentUser = null;
@@ -498,15 +542,9 @@
                 membersData = [];
                 snapshot.forEach(docSnap => membersData.push({ ...docSnap.data() }));
                 
-                // อัปเดตยอดสมาชิก
                 document.getElementById('member-counter').innerText = `TOTAL MEMBERS: ${membersData.length}`;
-
-                // เรียกให้เรนเดอร์พร้อมกับ Search (ถ้ามีการพิมพ์ค้างไว้)
                 window.handleSearch(); 
-
-                if(!document.getElementById('admin-view').classList.contains('hidden')) {
-                    renderAdminTable();
-                }
+                if(!document.getElementById('admin-view').classList.contains('hidden')) renderAdminTable();
                 
                 if (window.currentProfileId) {
                     const updatedMember = membersData.find(m => m.studentId === window.currentProfileId);
@@ -519,14 +557,11 @@
                 }
             });
         }
+        subscribeToData();
 
-        // ฟังก์ชัน Search แบบเรียลไทม์
         window.handleSearch = function() {
             const query = (document.getElementById('search-input').value || '').toLowerCase().trim();
-            if(!query) {
-                renderTree(membersData);
-                return;
-            }
+            if(!query) { renderTree(membersData); return; }
 
             const filteredData = membersData.filter(m => {
                 const fullName = `${m.firstName || ''} ${m.lastName || ''}`.toLowerCase();
@@ -537,17 +572,11 @@
             renderTree(filteredData);
         };
 
-        // เริ่มดึงข้อมูลทันทีไม่ต้องรอ Login
-        subscribeToData();
-
         // ====== ADMIN FUNCTIONS ======
         window.importCSV = function() {
             if (!currentUser || !currentUser.isAdmin) return;
             const fileInput = document.getElementById('csv-file');
-            if (!fileInput.files.length) {
-                showAlert("แจ้งเตือน", "กรุณาเลือกไฟล์ CSV ก่อน");
-                return;
-            }
+            if (!fileInput.files.length) { showAlert("แจ้งเตือน", "กรุณาเลือกไฟล์ CSV ก่อน"); return; }
             
             const file = fileInput.files[0];
             const btn = document.querySelector('button[onclick="importCSV()"]');
@@ -591,11 +620,7 @@
             const studentId = document.getElementById('add-id').value.trim();
             const btn = document.getElementById('manual-add-btn');
             
-            if (studentId.length !== 10) {
-                showAlert("ข้อผิดพลาด", "รหัสนักศึกษาต้องมี 10 หลัก");
-                return;
-            }
-
+            if (studentId.length !== 10) { showAlert("ข้อผิดพลาด", "รหัสนักศึกษาต้องมี 10 หลัก"); return; }
             btn.innerText = "..."; btn.disabled = true;
             try {
                 const userDocRef = doc(db, USERS_PATH, studentId);
@@ -616,24 +641,17 @@
                     showAlert("สำเร็จ", `เพิ่ม ${studentId} เรียบร้อยแล้ว`);
                     document.getElementById('manual-add-form').reset();
                 }
-            } catch (err) {
-                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกได้");
-            } finally {
-                btn.innerText = "ADD_MEMBER"; btn.disabled = false;
-            }
+            } catch (err) { showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกได้"); } 
+            finally { btn.innerText = "ADD_MEMBER"; btn.disabled = false; }
         };
 
         window.renderAdminTable = function() {
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
-            
             if (membersData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center">ไม่มีข้อมูล</td></tr>`;
-                return;
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center">ไม่มีข้อมูล</td></tr>`; return;
             }
-
             const sortedData = [...membersData].sort((a,b) => a.studentId.localeCompare(b.studentId));
-
             sortedData.forEach(member => {
                 const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
                 const tr = document.createElement('tr');
@@ -652,7 +670,6 @@
         window.openEditModal = function(studentId) {
             const member = membersData.find(m => m.studentId === studentId);
             if (!member) return;
-
             document.getElementById('edit-id').value = member.studentId;
             document.getElementById('edit-firstname').value = member.firstName || '';
             document.getElementById('edit-lastname').value = member.lastName || '';
@@ -660,7 +677,6 @@
             document.getElementById('edit-position').value = member.position || 'สมาชิก';
             document.getElementById('edit-line').value = member.lineId || '';
             document.getElementById('edit-ig').value = member.instagram || '';
-
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
@@ -681,11 +697,8 @@
                     instagram: document.getElementById('edit-ig').value.trim()
                 });
                 closeEditModal(); showAlert("สำเร็จ", "อัปเดตข้อมูลเรียบร้อย");
-            } catch (error) { 
-                showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกการแก้ไขได้"); 
-            } finally {
-                btn.innerText = "SAVE_CHANGES"; btn.disabled = false;
-            }
+            } catch (error) { showAlert("ข้อผิดพลาด", "ไม่สามารถบันทึกการแก้ไขได้"); } 
+            finally { btn.innerText = "SAVE_CHANGES"; btn.disabled = false; }
         }
 
         // ====== RENDER TREE (Grid 3 Columns) ======
@@ -703,7 +716,7 @@
 
             let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
             
-            // ประธาน (ปรับขนาดให้สมดุลบนมือถือ ไม่ใหญ่จนเกินไป)
+            // ประธาน (ปรับขนาดมือถือ max-w-[170px])
             if (presidents.length > 0) {
                 html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">
                             ${buildKeycapNode(presidents[0], 'president')}
@@ -715,7 +728,7 @@
                             ${buildKeycapNode(vps[0], 'normal')}
                          </div>`;
             }
-            // สมาชิก (Grid แถวละ 3 คงที่ 100%)
+            // สมาชิก (Grid 3 Columns)
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
@@ -731,10 +744,13 @@
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || 'ไม่ระบุชื่อ';
             
+            // ส่งชื่อแรก (firstName) ไปให้ฟังก์ชันหาตัวย่อ ถ้ารูปพัง
+            const fnameParam = member.firstName ? member.firstName.replace(/'/g, "\\'") : '';
+            
             return `
                 <div class="keycap ${isPres ? 'president' : ''} p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
                     <img src="assets/${member.studentId}.jpeg" 
-                         onerror="window.handleFallbackImg(this, '${member.studentId}', 0)" 
+                         onerror="window.handleFallbackImg(this, '${member.studentId}', 0, '${fnameParam}')" 
                          alt="Profile" 
                          class="profile-img mb-2 bg-gray-300">
                     <p class="thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-800 leading-tight text-center w-full truncate">${displayName}</p>
@@ -760,11 +776,11 @@
             document.getElementById('modal-ig').innerText = member.instagram || '-';
 
             const modalImg = document.getElementById('modal-img');
-            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 0); };
+            const fnameParam = member.firstName ? member.firstName : '';
+            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 0, fnameParam); };
             modalImg.src = `assets/${member.studentId}.jpeg`;
 
             const statusForm = document.getElementById('status-form');
-            // เช็คว่าคนที่คลิกคือเจ้าของบัญชีที่ล็อกอินอยู่หรือไม่
             if (currentUser && currentUser.studentId === studentId) {
                 statusForm.classList.remove('hidden'); statusForm.classList.add('flex');
                 document.getElementById('status-input').value = member.status || '';
@@ -781,23 +797,18 @@
 
         window.updateStatus = async function(e) {
             e.preventDefault();
-            // ดับเบิ้ลเช็คความปลอดภัยก่อนส่งขึ้น Firebase
             if (!currentUser || currentUser.studentId !== window.currentProfileId) return;
 
             const btn = document.getElementById('status-btn');
             btn.innerText = "..."; btn.disabled = true;
-
             try {
                 await updateDoc(doc(db, USERS_PATH, window.currentProfileId), { 
                     status: document.getElementById('status-input').value.trim() 
                 });
                 showAlert("สำเร็จ", "อัปเดตสเตตัสเรียบร้อยแล้ว");
                 closeProfile();
-            } catch (error) { 
-                showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตสเตตัสได้"); 
-            } finally { 
-                btn.innerText = "UPDATE_STATUS"; btn.disabled = false; 
-            }
+            } catch (error) { showAlert("ข้อผิดพลาด", "ไม่สามารถอัปเดตสเตตัสได้"); } 
+            finally { btn.innerText = "UPDATE_STATUS"; btn.disabled = false; }
         }
     </script>
 </body>
