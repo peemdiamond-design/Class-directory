@@ -67,10 +67,50 @@
             background: linear-gradient(180deg, #e0e0d5 0%, #d1d1c8 100%);
         }
 
+        /* President Keycap: Dark Charcoal / Terminal System Key */
         .keycap.president {
-            background: linear-gradient(180deg, #e8e8df 0%, #c4c4b9 100%);
-            border-color: #a3a39b;
+            background: linear-gradient(180deg, #454746 0%, #2f302f 100%);
+            border-color: #1a1a1a;
+            box-shadow: 
+                -1px -1px 2px rgba(255, 255, 255, 0.1) inset,
+                1px 1px 3px rgba(0, 0, 0, 0.5) inset,
+                0px 6px 0px #1a1a1a,
+                0px 8px 15px rgba(0, 0, 0, 0.5);
         }
+        .keycap.president:active {
+            background: linear-gradient(180deg, #2f302f 0%, #1a1a1a 100%);
+            box-shadow: 
+                -1px -1px 2px rgba(255, 255, 255, 0.1) inset,
+                1px 1px 3px rgba(0, 0, 0, 0.6) inset,
+                0px 2px 0px #1a1a1a,
+                0px 3px 5px rgba(0, 0, 0, 0.5);
+        }
+        .keycap.president .name-text { color: #f5f5f0 !important; }
+        .keycap.president .pos-text { color: #4ade80 !important; text-shadow: 0 0 5px rgba(74,222,128,0.5); }
+        .keycap.president .border-t { border-color: #555 !important; }
+        .keycap.president .profile-img { border-color: #555; }
+
+        /* VP Keycap: Vintage Modifier Key (Grey) */
+        .keycap.vp {
+            background: linear-gradient(180deg, #c7c7c0 0%, #a8a8a0 100%);
+            border-color: #85857e;
+            box-shadow: 
+                -1px -1px 2px rgba(255, 255, 255, 0.7) inset,
+                1px 1px 3px rgba(0, 0, 0, 0.15) inset,
+                0px 6px 0px #7a7a73,
+                0px 8px 15px rgba(0, 0, 0, 0.4);
+        }
+        .keycap.vp:active {
+            background: linear-gradient(180deg, #a8a8a0 0%, #91918a 100%);
+            box-shadow: 
+                -1px -1px 2px rgba(255, 255, 255, 0.7) inset,
+                1px 1px 3px rgba(0, 0, 0, 0.2) inset,
+                0px 2px 0px #7a7a73,
+                0px 3px 5px rgba(0, 0, 0, 0.4);
+        }
+        .keycap.vp .pos-text { color: #b45309 !important; }
+        .keycap.vp .border-t { border-color: #94948a !important; }
+        .keycap.vp .profile-img { border-color: #94948a; }
 
         /* รูปโปรไฟล์ Full Color 3:4 */
         .profile-img {
@@ -911,8 +951,8 @@
             members.sort((a,b) => a.studentId.localeCompare(b.studentId));
 
             let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
-            if (presidents.length > 0) html += `<div class="flex justify-center w-full max-w-[200px] md:max-w-[280px] px-2">${buildKeycapNode(presidents[0], 'president')}</div>`;
-            if (vps.length > 0) html += `<div class="flex justify-center w-full max-w-[180px] md:max-w-[260px] px-2">${buildKeycapNode(vps[0], 'normal')}</div>`;
+            if (presidents.length > 0) html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">${buildKeycapNode(presidents[0], 'president')}</div>`;
+            if (vps.length > 0) html += `<div class="flex justify-center w-full max-w-[150px] md:max-w-[220px] px-2">${buildKeycapNode(vps[0], 'vp')}</div>`;
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
@@ -924,21 +964,26 @@
 
         window.buildKeycapNode = function(member, type = 'normal') {
             const isPres = type === 'president';
+            const isVP = type === 'vp';
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || 'ไม่ระบุชื่อ';
             const fnameParam = member.firstName ? member.firstName.replace(/'/g, "\\'") : '';
             const bdayIcon = isBirthday(member.birthdate) ? `<span class="absolute -top-3 -right-3 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] z-20 animate-bounce">🎂</span>` : '';
             
+            let ledHtml = '';
+            if (isPres) ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#4ade80] shadow-[0_0_5px_rgba(74,222,128,0.8)] animate-pulse mr-1.5"></span>`;
+            if (isVP) ledHtml = `<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#f59e0b] shadow-[0_0_5px_rgba(245,158,11,0.8)] mr-1.5"></span>`;
+
             return `
-                <div class="keycap ${isPres ? 'president' : ''} p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
+                <div class="keycap ${isPres ? 'president' : isVP ? 'vp' : ''} p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
                     ${bdayIcon}
                     <img src="assets/${member.studentId}.jpeg" 
                          onerror="window.handleFallbackImg(this, '${member.studentId}', 0, '${fnameParam}')" 
                          alt="Profile" 
                          class="profile-img mb-2">
-                    <p class="thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 leading-tight text-center w-full truncate">${displayName}</p>
+                    <p class="name-text thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 leading-tight text-center w-full truncate">${displayName}</p>
                     <div class="w-full mt-1 md:mt-2 pt-1 border-t border-[#a3a39b]">
-                        <p class="thai-text text-[8px] sm:text-[10px] md:text-xs text-gray-700 font-bold text-center">${member.position}</p>
+                        <p class="pos-text thai-text text-[8px] sm:text-[10px] md:text-xs text-gray-700 font-bold text-center flex items-center justify-center">${ledHtml}${member.position}</p>
                     </div>
                     ${member.status ? `<div class="mt-2 text-[8px] md:text-xs led-status px-2 py-1 rounded w-full truncate text-center font-bold tracking-wider">${member.status}</div>` : ''}
                 </div>
@@ -1033,6 +1078,38 @@
         }
 
         // ====== ADMIN FUNCTIONS ======
+        window.exportCSV = function() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            if (membersData.length === 0) {
+                showAlert("แจ้งเตือน", "ยังไม่มีข้อมูลสมาชิกให้ดาวน์โหลด"); return;
+            }
+
+            const btn = document.querySelector('button[onclick="exportCSV()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "EXPORTING..."; btn.disabled = true;
+
+            try {
+                // แปลงข้อมูล Object กลับเป็นรูปแบบ CSV (รองรับภาษาไทย)
+                const csv = window.Papa.unparse(membersData, { quotes: true });
+                
+                // ใส่ BOM (\uFEFF) นำหน้า เพื่อบังคับให้ Excel อ่านเป็น UTF-8 (ภาษาไทยจะได้ไม่เพี้ยนเป็นตัวยึกยือ)
+                const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `CN25_Directory_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showAlert("สำเร็จ", "ดาวน์โหลดข้อมูลเป็นไฟล์ CSV เรียบร้อยแล้ว\n(สามารถเปิดด้วยโปรแกรม Excel ได้เลย)");
+            } catch(e) {
+                showAlert("ข้อผิดพลาด", "ไม่สามารถดาวน์โหลดไฟล์ได้");
+            } finally {
+                btn.innerText = originalText; btn.disabled = false;
+            }
+        };
+
         window.addMemberManual = async function(e) {
             e.preventDefault();
             if (!currentUser || !currentUser.isAdmin) return;
