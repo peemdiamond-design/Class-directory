@@ -951,13 +951,28 @@
             members.sort((a,b) => a.studentId.localeCompare(b.studentId));
 
             let html = `<div class="flex flex-col items-center gap-6 md:gap-8 w-full animate-pop">`;
-            if (presidents.length > 0) html += `<div class="flex justify-center w-full max-w-[170px] md:max-w-[240px] px-2">${buildKeycapNode(presidents[0], 'president')}</div>`;
-            if (vps.length > 0) html += `<div class="flex justify-center w-full max-w-[150px] md:max-w-[220px] px-2">${buildKeycapNode(vps[0], 'vp')}</div>`;
+            
+            // นำประธานและรองประธานมารวมกันจัดไว้ด้านบน
+            const leaders = [...presidents, ...vps];
+            if (leaders.length > 0) {
+                // ใช้ flex justify-center เพื่อให้ถ้ามีคนเดียวจะอยู่ตรงกลาง ถ้ามีสองคนจะอยู่คู่กัน
+                html += `<div class="flex justify-center gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
+                leaders.forEach(m => {
+                    // กำหนดขนาดความกว้างให้เท่ากับช่อง grid-cols-3 ของสมาชิกพอดี และลบสีพิเศษออก (type='normal')
+                    html += `<div class="w-[32%] sm:w-[32%] md:w-[32.5%] flex-shrink-0">
+                                ${buildKeycapNode(m, 'normal')}
+                             </div>`;
+                });
+                html += `</div>`;
+            }
+
+            // สมาชิกแสดงใน Grid 3 คอลัมน์ด้านล่าง
             if (members.length > 0) {
                 html += `<div class="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 w-full z-10 px-1 md:px-2 max-w-5xl">`;
                 members.forEach(m => html += buildKeycapNode(m, 'normal'));
                 html += `</div>`;
             }
+            
             html += `</div>`;
             container.innerHTML = html;
         }
