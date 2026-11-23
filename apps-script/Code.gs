@@ -39,6 +39,28 @@ function setup() {
   if (!props.getProperty('FIREBASE_API_KEY')) Logger.log('ยังไม่ได้ใส่ FIREBASE_API_KEY');
 }
 
+/**
+ * รันครั้งเดียว: ดึงรูปเลขนศ. จากโฟลเดอร์ assets/ ใน GitHub repo มาใส่โฟลเดอร์ Drive
+ * ข้ามคนที่มีรูปใน Drive อยู่แล้ว
+ */
+function importFromGitHub() {
+  const api = 'https://api.github.com/repos/peemdiamond-design/Class-directory/contents/assets?ref=main';
+  const list = JSON.parse(UrlFetchApp.fetch(api, { headers: { 'User-Agent': 'cn25-photo-import' } }).getContentText());
+  const existing = buildPhotoMap_();
+  const folder = DriveApp.getFolderById(prop_('FOLDER_ID'));
+  let added = 0;
+  list.forEach(function (item) {
+    const m = /^(\d{10})\.(jpe?g|png|webp)$/i.exec(item.name);
+    if (!m || existing[m[1]]) return;
+    const blob = UrlFetchApp.fetch(item.download_url).getBlob().setName(m[1] + '.' + m[2].toLowerCase());
+    const f = folder.createFile(blob);
+    try { f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (err) {}
+    added++;
+  });
+  CacheService.getScriptCache().remove(CACHE_KEY);
+  Logger.log('นำเข้า ' + added + ' รูป');
+}
+
 const CACHE_KEY = 'photo-map-v1';
 const CACHE_SECONDS = 300;
 const MAX_BYTES = 4 * 1024 * 1024;
