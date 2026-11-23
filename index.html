@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLASS DIRECTORY CN25</title>
-    
+    <link rel="icon" type="image/svg+xml" href="assets/logo-cn25.svg">
+    <link rel="apple-touch-icon" href="assets/logo-cn25-180.png">
+    <meta name="theme-color" content="#d1d1c8">
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PapaParse สำหรับอ่าน CSV -->
@@ -199,6 +202,7 @@
         <div id="directory-view" class="w-full max-w-6xl flex flex-col items-center">
             <header class="flex flex-col items-center justify-center bg-[#e8e8df] p-6 md:p-8 rounded-xl border-t-2 border-l-2 border-white border-opacity-80 shadow-[4px_4px_12px_rgba(0,0,0,0.15)] mb-8 w-full relative">
                 <div class="text-center z-10 w-full flex flex-col items-center">
+                    <img src="assets/logo-cn25.svg" alt="" width="96" height="96" class="w-20 h-20 md:w-24 md:h-24 mb-3 drop-shadow-[0_4px_6px_rgba(0,0,0,0.25)]">
                     <h1 class="text-3xl md:text-5xl font-bold tracking-tighter text-[#222] drop-shadow-sm">CLASS DIRECTORY CN25</h1>
                     <h2 class="thai-text text-xl md:text-2xl text-gray-700 font-bold mt-2">ทำเนียบรุ่น</h2>
                     
@@ -330,6 +334,19 @@
                         </div>
                     </div>
 
+                    <!-- Bulk Photo Upload (Google Drive) -->
+                    <div class="pb-4 border-b border-gray-400 mb-6">
+                        <h4 class="font-bold mb-2 thai-text text-sm flex items-center gap-2">
+                            <span class="bg-purple-600 w-2 h-2 rounded-full inline-block"></span>อัปโหลดรูปหลายรูปเข้า Google Drive
+                        </h4>
+                        <p class="thai-text text-xs text-gray-700 mb-2">ตั้งชื่อไฟล์เป็นเลขนศ. เช่น <span class="font-mono">6910616249.jpg</span> ระบบจะย่อรูปและแทนที่รูปเดิมให้อัตโนมัติ</p>
+                        <div class="flex gap-2 items-center flex-wrap">
+                            <input type="file" id="bulk-photo-input" accept="image/*" multiple class="border border-[#a3a39b] bg-white p-1 text-sm rounded cursor-pointer shadow-inner">
+                            <button type="button" id="bulk-photo-btn" onclick="bulkUploadPhotos()" class="keycap py-1 px-4 text-xs font-bold !w-auto !m-0 bg-purple-200">UPLOAD_PHOTOS</button>
+                        </div>
+                        <pre id="bulk-photo-log" class="thai-text text-xs text-red-700 mt-2 whitespace-pre-wrap"></pre>
+                    </div>
+
                     <!-- Data Table -->
                     <h3 class="font-bold mb-3 thai-text flex items-center gap-2">
                         <span class="bg-yellow-500 w-2 h-2 rounded-full inline-block"></span>จัดการรายชื่อสมาชิก
@@ -384,8 +401,14 @@
         <div class="bg-[#e8e8df] w-full max-w-sm md:max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center animate-pop max-h-[90vh] overflow-y-auto">
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 bg-gray-200">X</button>
             
-            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#a3a39b] rounded mb-4 bg-[#d1d1c8] shadow-[inset_0_3px_6px_rgba(0,0,0,0.2)]">
-            
+            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#a3a39b] rounded mb-3 bg-[#d1d1c8] shadow-[inset_0_3px_6px_rgba(0,0,0,0.2)]">
+
+            <!-- เปลี่ยนรูปโปรไฟล์ (เจ้าของ/แอดมิน) -> เก็บใน Google Drive -->
+            <div id="photo-upload-row" class="hidden mb-4">
+                <input type="file" id="photo-file-input" accept="image/*" class="hidden" onchange="onProfilePhotoChosen(this)">
+                <button type="button" id="photo-upload-btn" onclick="pickProfilePhoto()" class="keycap px-3 py-1 text-xs font-bold bg-purple-200 text-purple-900">📷 CHANGE_PHOTO</button>
+            </div>
+
             <h2 id="modal-name" class="thai-text text-xl font-bold text-gray-900 text-center w-full drop-shadow-sm"></h2>
             <p id="modal-nickname" class="thai-text text-sm text-gray-600 font-bold"></p>
             
@@ -546,7 +569,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, addDoc, deleteDoc, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, addDoc, deleteDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDx5NGRp1zwvOwZ9bsU7euppT8ofglptvU",
@@ -567,7 +590,13 @@
         const MEMORIES_PATH = `artifacts/${APP_ID}/public/data/memories`;
         const STATS_PATH = `artifacts/${APP_ID}/public/data/stats`;
         const ADMIN_ID = '6910616249';
-        
+
+        // ====== GOOGLE DRIVE PHOTOS ======
+        // วาง URL ของ Apps Script Web App (ลงท้ายด้วย /exec) ตรงนี้ ดูวิธีใน apps-script/SETUP.md
+        // ถ้ายังเว้นว่าง เว็บจะใช้รูปจากโฟลเดอร์ assets/ แบบเดิมไปก่อน
+        const PHOTO_API_URL = '';
+        let photoMap = {};
+
         let currentUser = null;
         let membersData = [];
         let memoriesData = [];
@@ -612,6 +641,7 @@
         });
         
         updateVisitorCount();
+        loadPhotoMap();
 
         // --- UI Utils ---
         window.addEventListener('scroll', () => {
@@ -680,8 +710,145 @@
             return today.getDate() === bDate.getDate() && today.getMonth() === bDate.getMonth();
         }
 
+        // กันข้อความจากผู้ใช้ไม่ให้กลายเป็น HTML/สคริปต์ (XSS)
+        window.esc = function(value) {
+            return String(value ?? '').replace(/[&<>"'`]/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;'
+            }[ch]));
+        };
+
+        window.avatarUrl = function(studentId, firstNameStr) {
+            const nameToUse = firstNameStr ? encodeURIComponent(firstNameStr.charAt(0)) : String(studentId || '').slice(-2);
+            return `https://ui-avatars.com/api/?name=${nameToUse}&background=d1d1c8&color=333&size=200&font-family=Sarabun&font-size=0.5&bold=true`;
+        };
+
+        // URL รูปของสมาชิก: Drive (ย่อขนาดอัตโนมัติ) > assets/ แบบเดิม (ถ้ายังไม่ตั้ง Drive) > ตัวอักษรย่อ
+        window.photoSrc = function(member, width = 480) {
+            const fileId = photoMap[member.studentId];
+            if (fileId) return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w${width}`;
+            if (!PHOTO_API_URL) return `assets/${encodeURIComponent(member.studentId)}.jpeg`;
+            return avatarUrl(member.studentId, member.firstName);
+        };
+
+        window.handlePhotoError = function(imgElement) {
+            const id = imgElement.dataset.sid || '';
+            const fname = imgElement.dataset.fname || '';
+            if (!PHOTO_API_URL) return window.handleFallbackImg(imgElement, id, 0, fname);
+            imgElement.onerror = null;
+            imgElement.src = avatarUrl(id, fname);
+        };
+
+        async function loadPhotoMap() {
+            if (!PHOTO_API_URL) return;
+            try {
+                const res = await fetch(PHOTO_API_URL, { redirect: 'follow' });
+                const data = await res.json();
+                if (data && data.ok) {
+                    photoMap = data.photos || {};
+                    window.handleSearch();
+                    refreshModalPhoto();
+                }
+            } catch (e) { console.error('Photo map error', e); }
+        }
+
+        function refreshModalPhoto() {
+            if (!window.currentProfileId) return;
+            const member = membersData.find(m => m.studentId === window.currentProfileId);
+            if (!member) return;
+            const modalImg = document.getElementById('modal-img');
+            modalImg.dataset.sid = member.studentId;
+            modalImg.dataset.fname = member.firstName || '';
+            modalImg.onerror = function() { window.handlePhotoError(modalImg); };
+            modalImg.src = photoSrc(member, 600);
+        }
+
+        // ย่อรูปในเบราว์เซอร์ก่อนอัป (ด้านยาวสุด 1000px, JPEG) แล้วคืน base64
+        function resizeToJpegBase64(file, maxSide = 1000, quality = 0.85) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(img.naturalWidth * scale);
+                    canvas.height = Math.round(img.naturalHeight * scale);
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    URL.revokeObjectURL(url);
+                    resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+                };
+                img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+                img.src = url;
+            });
+        }
+
+        async function uploadPhoto(studentId, file) {
+            if (!PHOTO_API_URL) throw new Error('ยังไม่ได้ตั้งค่า PHOTO_API_URL');
+            if (!auth.currentUser) throw new Error('กรุณาล็อกอินก่อน');
+            let data;
+            try { data = await resizeToJpegBase64(file); }
+            catch (e) { throw new Error('เปิดไฟล์รูปนี้ไม่ได้ (ลองใช้ JPG/PNG)'); }
+            const idToken = await auth.currentUser.getIdToken();
+            // ไม่ใส่ Content-Type เพื่อให้เป็น simple request (Apps Script ไม่รองรับ CORS preflight)
+            const res = await fetch(PHOTO_API_URL, {
+                method: 'POST', redirect: 'follow',
+                body: JSON.stringify({ idToken, studentId, mimeType: 'image/jpeg', data })
+            });
+            const out = await res.json();
+            if (!out.ok) {
+                const msgs = { 'forbidden': 'ไม่มีสิทธิ์เปลี่ยนรูปของคนนี้', 'not-signed-in': 'เซสชันหมดอายุ กรุณาล็อกอินใหม่', 'too-large': 'ไฟล์ใหญ่เกินไป' };
+                throw new Error(msgs[out.error] || `อัปโหลดไม่สำเร็จ (${out.error})`);
+            }
+            photoMap[studentId] = out.fileId;
+            return out.fileId;
+        }
+
+        window.pickProfilePhoto = function() {
+            document.getElementById('photo-file-input').click();
+        };
+
+        window.onProfilePhotoChosen = async function(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            const studentId = window.currentProfileId;
+            if (!file || !studentId) return;
+            const btn = document.getElementById('photo-upload-btn');
+            const original = btn.innerText;
+            btn.innerText = 'UPLOADING...'; btn.disabled = true;
+            try {
+                await uploadPhoto(studentId, file);
+                refreshModalPhoto();
+                window.handleSearch();
+            } catch (e) { showAlert('อัปโหลดรูปไม่สำเร็จ', e.message); }
+            finally { btn.innerText = original; btn.disabled = false; }
+        };
+
+        // แอดมิน: อัปหลายรูปพร้อมกัน ชื่อไฟล์ต้องเป็น <เลขนศ>.jpg/.png
+        window.bulkUploadPhotos = async function() {
+            if (!currentUser || !currentUser.isAdmin) return;
+            const input = document.getElementById('bulk-photo-input');
+            const files = Array.from(input.files || []);
+            if (!files.length) return;
+            const btn = document.getElementById('bulk-photo-btn');
+            const log = document.getElementById('bulk-photo-log');
+            btn.disabled = true;
+            let ok = 0; const failed = [];
+            for (let i = 0; i < files.length; i++) {
+                const f = files[i];
+                const m = /^(\d{10})\./.exec(f.name);
+                btn.innerText = `UPLOADING ${i + 1}/${files.length}`;
+                if (!m) { failed.push(`${f.name}: ชื่อไฟล์ไม่ใช่เลขนศ. 10 หลัก`); continue; }
+                try { await uploadPhoto(m[1], f); ok++; }
+                catch (e) { failed.push(`${f.name}: ${e.message}`); }
+            }
+            input.value = '';
+            btn.innerText = 'UPLOAD_PHOTOS'; btn.disabled = false;
+            log.innerText = failed.join('\n');
+            window.handleSearch();
+            showAlert('อัปโหลดเสร็จ', `สำเร็จ ${ok} รูป${failed.length ? `\nไม่สำเร็จ ${failed.length} รูป (ดูรายละเอียดด้านล่างปุ่ม)` : ''}`);
+        };
+
         window.handleFallbackImg = function(imgElement, studentId, step, firstNameStr) {
-            const exts = ['jpg', 'png', 'webp', 'gif']; 
+            const exts = ['jpg', 'png', 'webp', 'gif'];
             if (step < exts.length) {
                 imgElement.onerror = function() { window.handleFallbackImg(imgElement, studentId, step + 1, firstNameStr); };
                 imgElement.src = `assets/${studentId}.${exts[step]}`;
@@ -868,12 +1035,8 @@
             const btn = e.target.querySelector('button');
             btn.innerText = "..."; btn.disabled = true;
             try {
-                const memRef = doc(db, MEMORIES_PATH, memoryId);
-                const memDoc = await getDoc(memRef);
-                if(memDoc.exists()) {
-                    const currentReplies = memDoc.data().replies || [];
-                    await updateDoc(memRef, { replies: [...currentReplies, newReply] });
-                }
+                // arrayUnion กันการตอบพร้อมกันแล้วเขียนทับกัน
+                await updateDoc(doc(db, MEMORIES_PATH, memoryId), { replies: arrayUnion(newReply) });
                 input.value = '';
                 toggleReplyForm(memoryId);
             } catch(err) {
@@ -923,33 +1086,34 @@
                         repliesHtml += `
                             <div class="reply-card p-3 rounded-r-lg mt-2 ml-4 md:ml-8 relative">
                                 <div class="flex justify-between items-start mb-1">
-                                    <span class="font-bold text-blue-900 text-xs flex items-center gap-1"><span class="text-[8px]">↳</span> ${reply.authorName}</span>
+                                    <span class="font-bold text-blue-900 text-xs flex items-center gap-1"><span class="text-[8px]">↳</span> ${esc(reply.authorName)}</span>
                                     <div class="flex items-center gap-2">
-                                        <span class="text-[9px] text-gray-500 font-bold">${rDateStr}</span>
-                                        ${rCanDelete ? `<button onclick="confirmDeleteReply('${mem.id}', '${reply.id}')" class="text-[9px] text-red-600 font-bold hover:bg-red-200 px-1 rounded transition-colors">DEL</button>` : ''}
+                                        <span class="text-[9px] text-gray-500 font-bold">${esc(rDateStr)}</span>
+                                        ${rCanDelete ? `<button data-mid="${esc(mem.id)}" data-rid="${esc(reply.id)}" onclick="confirmDeleteReply(this.dataset.mid, this.dataset.rid)" class="text-[9px] text-red-600 font-bold hover:bg-red-200 px-1 rounded transition-colors">DEL</button>` : ''}
                                     </div>
                                 </div>
-                                <p class="thai-text text-gray-800 text-xs md:text-sm whitespace-pre-line">${reply.message}</p>
+                                <p class="thai-text text-gray-800 text-xs md:text-sm whitespace-pre-line">${esc(reply.message)}</p>
                             </div>
                         `;
                     });
                 }
 
-                const replyBtn = currentUser ? `<button onclick="toggleReplyForm('${mem.id}')" class="text-xs text-purple-700 font-bold hover:bg-purple-200 px-2 py-1 rounded transition-colors border border-transparent hover:border-purple-300">↳ REPLY</button>` : '';
+                const mid = esc(mem.id);
+                const replyBtn = currentUser ? `<button data-mid="${mid}" onclick="toggleReplyForm(this.dataset.mid)" class="text-xs text-purple-700 font-bold hover:bg-purple-200 px-2 py-1 rounded transition-colors border border-transparent hover:border-purple-300">↳ REPLY</button>` : '';
 
                 html += `
                     <div class="memory-card p-4 rounded-xl w-full animate-pop flex flex-col relative">
                         <div class="flex justify-between items-start mb-2 border-b-2 border-[#a3a39b] pb-2">
                             <span class="font-bold text-purple-900 text-sm flex items-center gap-2">
                                 <span class="bg-purple-600 w-2.5 h-2.5 rounded-full inline-block shadow-[0_0_5px_rgba(147,51,234,0.8)]"></span>
-                                ${mem.authorName}
+                                ${esc(mem.authorName)}
                             </span>
                             <div class="flex items-center gap-3">
-                                <span class="text-[10px] text-gray-600 font-bold">${dateStr}</span>
-                                ${canDelete ? `<button onclick="confirmDeleteMemory('${mem.id}')" class="text-[10px] text-red-700 font-bold hover:bg-red-200 px-1.5 py-0.5 rounded border border-transparent hover:border-red-400 transition-colors">DEL</button>` : ''}
+                                <span class="text-[10px] text-gray-600 font-bold">${esc(dateStr)}</span>
+                                ${canDelete ? `<button data-mid="${mid}" onclick="confirmDeleteMemory(this.dataset.mid)" class="text-[10px] text-red-700 font-bold hover:bg-red-200 px-1.5 py-0.5 rounded border border-transparent hover:border-red-400 transition-colors">DEL</button>` : ''}
                             </div>
                         </div>
-                        <p class="thai-text text-gray-900 text-sm whitespace-pre-line py-2">${mem.message}</p>
+                        <p class="thai-text text-gray-900 text-sm whitespace-pre-line py-2">${esc(mem.message)}</p>
                         
                         <div class="flex justify-end gap-3 mt-1">
                             ${replyBtn}
@@ -959,8 +1123,8 @@
                             ${repliesHtml}
                         </div>
 
-                        <form id="reply-form-${mem.id}" onsubmit="postReply(event, '${mem.id}')" class="hidden mt-3 ml-4 md:ml-8 flex flex-col gap-2 bg-[#d1d1c8] p-3 rounded-lg border-2 border-[#a3a39b] shadow-inner">
-                            <textarea id="reply-input-${mem.id}" class="cmd-input !text-sm !h-16 resize-none" placeholder="> ตอบกลับข้อความนี้..." required maxlength="200"></textarea>
+                        <form id="reply-form-${mid}" data-mid="${mid}" onsubmit="postReply(event, this.dataset.mid)" class="hidden mt-3 ml-4 md:ml-8 flex flex-col gap-2 bg-[#d1d1c8] p-3 rounded-lg border-2 border-[#a3a39b] shadow-inner">
+                            <textarea id="reply-input-${mid}" class="cmd-input !text-sm !h-16 resize-none" placeholder="> ตอบกลับข้อความนี้..." required maxlength="200"></textarea>
                             <button type="submit" class="keycap py-1 text-xs font-bold bg-purple-300 text-purple-900 w-28 self-end">SEND_REPLY</button>
                         </form>
                     </div>
@@ -1024,7 +1188,6 @@
         window.buildKeycapNode = function(member) {
             const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
             const displayName = fullName || 'ไม่ระบุชื่อ';
-            const fnameParam = member.firstName ? member.firstName.replace(/'/g, "\\'") : '';
             const bdayIcon = isBirthday(member.birthdate) ? `<span class="absolute -top-3 -right-3 text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)] z-20 animate-bounce">🎂</span>` : '';
             
             let ledHtml = '';
@@ -1033,17 +1196,19 @@
 
             // ลบ class พิเศษออก ให้ใช้ .keycap เหมือนสมาชิกทั่วไป 100%
             return `
-                <div class="keycap p-2 md:p-4 flex flex-col items-center w-full h-full" onclick="openProfile('${member.studentId}')">
+                <div class="keycap p-2 md:p-4 flex flex-col items-center w-full h-full" data-sid="${esc(member.studentId)}" onclick="openProfile(this.dataset.sid)">
                     ${bdayIcon}
-                    <img src="assets/${member.studentId}.jpeg" 
-                         onerror="window.handleFallbackImg(this, '${member.studentId}', 0, '${fnameParam}')" 
-                         alt="Profile" 
+                    <img src="${esc(photoSrc(member))}"
+                         data-sid="${esc(member.studentId)}" data-fname="${esc(member.firstName || '')}"
+                         onerror="window.handlePhotoError(this)"
+                         loading="lazy" decoding="async"
+                         alt="${esc(displayName)}"
                          class="profile-img mb-2">
-                    <p class="name-text thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 leading-tight text-center w-full truncate">${displayName}</p>
+                    <p class="name-text thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 leading-tight text-center w-full truncate">${esc(displayName)}</p>
                     <div class="w-full mt-1 md:mt-2 pt-1 border-t border-[#a3a39b]">
-                        <p class="pos-text thai-text text-[8px] sm:text-[10px] md:text-xs text-gray-700 font-bold text-center flex items-center justify-center">${ledHtml}${member.position}</p>
+                        <p class="pos-text thai-text text-[8px] sm:text-[10px] md:text-xs text-gray-700 font-bold text-center flex items-center justify-center">${ledHtml}${esc(member.position)}</p>
                     </div>
-                    ${member.status ? `<div class="mt-2 text-[8px] md:text-xs led-status px-2 py-1 rounded w-full truncate text-center font-bold tracking-wider">${member.status}</div>` : ''}
+                    ${member.status ? `<div class="mt-2 text-[8px] md:text-xs led-status px-2 py-1 rounded w-full truncate text-center font-bold tracking-wider">${esc(member.status)}</div>` : ''}
                 </div>
             `;
         }
@@ -1067,10 +1232,11 @@
 
             renderProfileTagsAndNicknames(member);
 
-            const modalImg = document.getElementById('modal-img');
-            const fnameParam = member.firstName ? member.firstName : '';
-            modalImg.onerror = function() { window.handleFallbackImg(modalImg, member.studentId, 0, fnameParam); };
-            modalImg.src = `assets/${member.studentId}.jpeg`;
+            refreshModalPhoto();
+
+            // ปุ่มเปลี่ยนรูป: เจ้าของโปรไฟล์ หรือแอดมิน (ต้องตั้ง PHOTO_API_URL แล้ว)
+            const canChangePhoto = !!PHOTO_API_URL && currentUser && (currentUser.studentId === studentId || currentUser.isAdmin);
+            document.getElementById('photo-upload-row').classList.toggle('hidden', !canChangePhoto);
 
             const statusForm = document.getElementById('status-form');
             const nicknameForm = document.getElementById('nickname-form');
@@ -1096,13 +1262,15 @@
             const tagsDiv = document.getElementById('modal-tags');
             if(member.tags) {
                 const tags = member.tags.split(',').map(t => t.trim()).filter(t => t);
-                tagsDiv.innerHTML = tags.map(t => `<span class="tag-pill">${t}</span>`).join('');
+                tagsDiv.innerHTML = tags.map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
             } else { tagsDiv.innerHTML = ''; }
 
             const nicknamesDiv = document.getElementById('modal-nicknames-list');
             if(member.givenNicknames && Object.keys(member.givenNicknames).length > 0) {
-                const nicks = Object.values(member.givenNicknames).filter(n => n.trim() !== '');
-                nicknamesDiv.innerHTML = nicks.map(n => `<span class="nickname-pill">"${n}"</span>`).join('');
+                const nicks = Object.values(member.givenNicknames).filter(n => String(n || '').trim() !== '');
+                nicknamesDiv.innerHTML = nicks.length
+                    ? nicks.map(n => `<span class="nickname-pill">"${esc(n)}"</span>`).join('')
+                    : '<span class="text-xs text-gray-500 italic font-bold">ยังไม่มีฉายา</span>';
             } else { nicknamesDiv.innerHTML = '<span class="text-xs text-gray-500 italic font-bold">ยังไม่มีฉายา</span>'; }
         }
 
@@ -1246,11 +1414,11 @@
             sortedData.forEach(member => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="px-4 py-3 font-mono">${member.studentId}</td>
-                    <td class="px-4 py-3">${member.firstName||''} ${member.lastName||''}</td>
-                    <td class="px-4 py-3">${member.position}</td>
+                    <td class="px-4 py-3 font-mono">${esc(member.studentId)}</td>
+                    <td class="px-4 py-3">${esc(member.firstName||'')} ${esc(member.lastName||'')}</td>
+                    <td class="px-4 py-3">${esc(member.position)}</td>
                     <td class="px-4 py-3">
-                        <button onclick="openEditModal('${member.studentId}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">EDIT</button>
+                        <button data-sid="${esc(member.studentId)}" onclick="openEditModal(this.dataset.sid)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">EDIT</button>
                     </td>
                 `;
                 tbody.appendChild(tr);

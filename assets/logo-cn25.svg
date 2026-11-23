@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="t">
+  <title id="t">CN25 Class Directory</title>
+  <defs>
+    <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbfbf9"/>
+      <stop offset="1" stop-color="#deded3"/>
+    </linearGradient>
+    <radialGradient id="dish" cx="0.5" cy="0.35" r="0.75">
+      <stop offset="0" stop-color="#f6f6f1"/>
+      <stop offset="1" stop-color="#e2e2d8"/>
+    </radialGradient>
+    <filter id="glowAmber" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glowGreen" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="1.4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ฐานปุ่ม (เงาความหนาของ keycap) -->
+  <rect x="8" y="16" width="104" height="98" rx="18" fill="#a3a39b"/>
+  <!-- ตัว keycap -->
+  <rect x="8" y="8" width="104" height="98" rx="18" fill="url(#cap)" stroke="#b5b5a6" stroke-width="1.5"/>
+  <!-- ผิวหน้าเว้า (dish) -->
+  <rect x="18" y="14" width="84" height="66" rx="12" fill="url(#dish)" stroke="#d0d0c5" stroke-width="1"/>
+  <path d="M24 18 h72" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".9"/>
+
+  <!-- ตัวอักษร CN แบบเส้นเดียว (ไม่พึ่งฟอนต์) -->
+  <g fill="none" stroke="#2b2b28" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M57.5 36.4 A15 15 0 1 0 57.5 59.6"/>
+    <path d="M67 63 V33 L88 63 V33"/>
+  </g>
+
+  <!-- หน้าจอ LED ด้านหน้าปุ่ม: เลข 25 แบบ 7-segment -->
+  <rect x="38" y="85" width="44" height="15" rx="3" fill="#121410" stroke="#333" stroke-width="1"/>
+  <g stroke-linecap="round" stroke-width="1.9" fill="none">
+    <!-- segment ที่ไม่ติด (เงา 8) -->
+    <g stroke="#3a3212">
+      <path d="M50 88.5h6M56.6 89.2v4.4M56.6 94.6v4.4M50 99.5h6M49.4 94.6v4.4M49.4 89.2v4.4M50 94h6"/>
+      <path d="M64 88.5h6M70.6 89.2v4.4M70.6 94.6v4.4M64 99.5h6M63.4 94.6v4.4M63.4 89.2v4.4M64 94h6"/>
+    </g>
+    <!-- 2 -->
+    <path stroke="#eab308" filter="url(#glowAmber)" d="M50 88.5h6M56.6 89.2v4.4M50 94h6M49.4 94.6v4.4M50 99.5h6"/>
+    <!-- 5 -->
+    <path stroke="#eab308" filter="url(#glowAmber)" d="M64 88.5h6M63.4 89.2v4.4M64 94h6M70.6 94.6v4.4M64 99.5h6"/>
+  </g>
+  <!-- ไฟสถานะสีเขียว -->
+  <circle cx="44" cy="92.5" r="2.2" fill="#4ade80" filter="url(#glowGreen)"/>
+  <circle cx="76" cy="92.5" r="1.4" fill="#235c34"/>
+</svg>
