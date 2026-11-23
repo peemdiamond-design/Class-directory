@@ -66,9 +66,9 @@ document.addEventListener('error', (e) => {
 }, true);
 document.addEventListener('load', (e) => {
   const img = e.target;
-  if (img instanceof HTMLImageElement && img.closest('.card-photo')) {
+  if (img instanceof HTMLImageElement && img.closest('.idcard-photo')) {
     img.classList.add('is-loaded');
-    img.closest('.card-photo').classList.add('is-loaded');
+    img.closest('.idcard-photo').classList.add('is-loaded');
   }
 }, true);
 
@@ -204,22 +204,62 @@ function route() {
 window.addEventListener('hashchange', route);
 const go = (hash) => { if (location.hash !== hash) location.hash = hash; else route(); };
 
+/* ================= barcode (Interleaved 2 of 5 — scannable) ================= */
+const ITF = ['nnwwn', 'wnnnw', 'nwnnw', 'wwnnn', 'nnwnw', 'wnwnn', 'nwwnn', 'nnnww', 'wnnwn', 'nwnwn'];
+function barcodeSVG(digits, h = 22) {
+  let d = String(digits || '').replace(/\D/g, '');
+  if (d.length % 2) d = '0' + d;
+  if (!d) return '';
+  const N = 1, W = 2.5;
+  const seq = ['n', 'n', 'n', 'n']; // start: bar space bar space
+  for (let i = 0; i < d.length; i += 2) {
+    const a = ITF[+d[i]], b = ITF[+d[i + 1]];
+    for (let k = 0; k < 5; k++) seq.push(a[k], b[k]);
+  }
+  seq.push('w', 'n', 'n'); // stop: wide bar, space, bar
+  let x = 0, rects = '';
+  seq.forEach((s, i) => {
+    const w = s === 'w' ? W : N;
+    if (i % 2 === 0) rects += `<rect x="${x.toFixed(1)}" width="${w}" height="${h}"/>`;
+    x += w;
+  });
+  return { w: x, h, inner: `<g fill="currentColor">${rects}</g>` };
+}
+function barcodeMarkup(digits, h) {
+  const b = barcodeSVG(digits, h); if (!b) return '';
+  return `<svg class="barcode" viewBox="0 0 ${b.w.toFixed(1)} ${b.h}" preserveAspectRatio="none" aria-hidden="true">${b.inner}</svg>`;
+}
+
 /* ================= directory ================= */
+let activeFilter = 'all';
+const isLeader = (m) => m.position === POS_PRES || m.position === POS_VP;
+const bdayThisMonth = (m) => { const d = parseDate(m.birthdate); return !!d && d.getMonth() === new Date().getMonth(); };
+const FILTERS = {
+  all: () => true,
+  leaders: isLeader,
+  bday: bdayThisMonth,
+  status: (m) => !!(m.status || '').trim()
+};
+
 function memberCard(m) {
   const pos = m.position || POS_MEMBER;
-  const led = pos === POS_PRES ? 'pres' : pos === POS_VP ? 'vp' : '';
+  const lead = isLeader(m);
+  const roleTag = pos === POS_PRES ? `<span class="role-tag">${icon('award')}ประธานรุ่น</span>`
+    : pos === POS_VP ? `<span class="role-tag vp">รองประธาน</span>` : '';
   const bday = isBirthday(m.birthdate)
     ? `<span class="badge-bday" title="วันนี้วันเกิด">${icon('cake')}<span class="sr-only">วันนี้วันเกิด</span></span>` : '';
   return `
-    <button class="card" type="button" data-open="${esc(m.studentId)}" aria-label="${esc(fullName(m))}${m.nickname ? ` (${esc(m.nickname)})` : ''} ${esc(pos)}">
+    <button class="idcard${lead ? ' is-leader' : ''}" type="button" data-open="${esc(m.studentId)}"
+            aria-label="${esc(fullName(m))}${m.nickname ? ` ชื่อเล่น ${esc(m.nickname)}` : ''}, ${esc(pos)}">
+      <span class="idcard-band" aria-hidden="true"><span>THAMMASAT · CN25</span><span class="dot"></span></span>
       ${bday}
-      <span class="card-photo"><img src="${esc(photoSrc(m))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-sid="${esc(m.studentId)}" width="240" height="320"></span>
-      <span class="card-body">
-        <span class="card-name" style="display:block">${esc(fullName(m))}</span>
-        <span class="card-nick" style="display:block">${m.nickname ? esc(m.nickname) : '&nbsp;'}</span>
-        <span class="card-meta"><span class="role-led ${led}" aria-hidden="true"></span>${esc(pos)}</span>
-        ${m.status ? `<span class="card-status" style="display:block">${esc(m.status)}</span>` : ''}
+      <span class="idcard-photo">${roleTag}<img src="${esc(photoSrc(m))}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" data-sid="${esc(m.studentId)}" width="240" height="300"></span>
+      <span class="idcard-body">
+        <span class="idcard-name">${esc(fullName(m))}</span>
+        <span class="idcard-nick">${m.nickname ? esc(m.nickname) : '&nbsp;'}</span>
+        ${m.status ? `<span class="idcard-status"><span>${esc(m.status)}</span></span>` : ''}
       </span>
+      <span class="idcard-foot" aria-hidden="true"><span class="mono">${esc(m.studentId)}</span>${barcodeMarkup(m.studentId, 22)}</span>
     </button>`;
 }
 
@@ -229,37 +269,76 @@ function matches(m, q) {
   return q.split(/\s+/).every((t) => hay.includes(t));
 }
 
+function renderFilterCounts() {
+  Object.keys(FILTERS).forEach((k) => {
+    const el = $(`[data-filter-n="${k}"]`);
+    if (el) el.textContent = members.filter(FILTERS[k]).length;
+  });
+  $$('[data-filter]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === activeFilter)));
+}
+
 function renderDirectory() {
   const q = ($('#search').value || '').trim().toLowerCase();
-  const list = members.filter((m) => matches(m, q));
+  const list = members.filter(FILTERS[activeFilter]).filter((m) => matches(m, q));
   const leaders = [...list.filter((m) => m.position === POS_PRES), ...list.filter((m) => m.position === POS_VP)];
-  const rest = list.filter((m) => m.position !== POS_PRES && m.position !== POS_VP)
-    .sort((a, b) => String(a.studentId).localeCompare(String(b.studentId)));
+  const rest = list.filter((m) => !isLeader(m)).sort((a, b) => String(a.studentId).localeCompare(String(b.studentId)));
 
   const box = $('[data-directory]');
   $('[data-action="clear-search"]').hidden = !q;
-  $('[data-search-status]').textContent = q ? (list.length ? `พบ ${list.length} คน` : '') : '';
+  $('[data-kbd]').hidden = !!q;
+  const filtered = q || activeFilter !== 'all';
+  $('[data-search-status]').textContent = filtered && list.length ? `แสดง ${list.length} จาก ${members.length} คน` : '';
 
   if (!list.length) {
+    const why = q ? `ไม่พบ “${esc(q)}”` : 'ยังไม่มีใครในหมวดนี้';
     box.innerHTML = `
-      <div class="panel empty" style="margin-top:24px">
+      <div class="panel empty" style="margin-top:32px">
         ${icon('search', 'icon')}
-        <strong>ไม่พบ “${esc(q)}”</strong>
-        <span>ลองค้นด้วยชื่อเล่น รหัสบางส่วน หรือแท็ก เช่น สายรหัส</span>
-        <button class="key key-sm" type="button" data-action="clear-search">ล้างคำค้นหา</button>
+        <strong>${why}</strong>
+        <span>${q ? 'ลองค้นด้วยชื่อเล่น รหัสบางส่วน หรือแท็ก เช่น สายรหัส' : 'ลองเลือกหมวดอื่น หรือดูทั้งหมด'}</span>
+        <button class="btn btn-sm" type="button" data-action="reset-filters">ดูทั้งหมด</button>
       </div>`;
     return;
   }
   let html = '';
   if (leaders.length) {
-    html += `<div class="section-head"><h2>${icon('award', 'icon')}คณะกรรมการรุ่น</h2></div>
+    html += `<div class="section-head"><h2>คณะกรรมการรุ่น</h2><span class="count">${leaders.length} คน</span></div>
              <div class="grid grid-leaders">${leaders.map(memberCard).join('')}</div>`;
   }
   if (rest.length) {
-    html += `<div class="section-head"><h2>${icon('users', 'icon')}สมาชิก</h2><span class="count">${rest.length} คน</span></div>
+    html += `<div class="section-head"><h2>สมาชิก</h2><span class="count">${rest.length} คน</span></div>
              <div class="grid">${rest.map(memberCard).join('')}</div>`;
   }
   box.innerHTML = html;
+}
+
+/* hero: stats + faces marquee */
+function setStat(key, value) {
+  const el = $(`[data-stat="${key}"]`); if (!el) return;
+  const small = el.querySelector('small');
+  el.textContent = Number(value).toLocaleString('th-TH');
+  if (small) el.appendChild(small);
+}
+function renderHero() {
+  setStat('members', members.length);
+  setStat('bdays', members.filter(bdayThisMonth).length);
+  const withPhoto = members.filter((m) => photoMap[m.studentId]);
+
+  // การ์ดซ้อนใน hero: เพื่อนสุ่ม 2 คน (ด้านหลัง) + ประธานรุ่น (ด้านหน้า)
+  const stack = $('[data-hero-stack]');
+  const pres = members.find((m) => m.position === POS_PRES);
+  const others = withPhoto.filter((m) => m !== pres).sort(() => Math.random() - .5).slice(0, pres ? 2 : 3);
+  const trio = pres ? [...others, pres] : others;
+  stack.innerHTML = trio.length === 3 ? trio.map(memberCard).join('') : '';
+
+  const box = $('[data-faces]');
+  if (withPhoto.length < 6) { box.hidden = true; $('[data-action="toggle-faces"]').hidden = true; return; }
+  const shuffled = [...withPhoto].sort(() => Math.random() - .5);
+  const half = Math.ceil(shuffled.length / 2);
+  const row = (arr) => { const items = arr.map((m) => `<span class="face"><img src="${esc(photoSrc(m, 200))}" alt="" decoding="async" referrerpolicy="no-referrer" data-sid="${esc(m.studentId)}"></span>`).join(''); return items + items; };
+  box.innerHTML = `<div class="faces-row">${row(shuffled.slice(0, half))}</div><div class="faces-row rev">${row(shuffled.slice(half).concat(shuffled.slice(0, Math.max(0, half - (shuffled.length - half)))))}</div>`;
+  box.hidden = false;
+  $('[data-action="toggle-faces"]').hidden = false;
 }
 
 function renderBirthdays() {
@@ -272,6 +351,15 @@ function renderBirthdays() {
 }
 
 $('#search').addEventListener('input', debounce(renderDirectory, 120));
+// กด "/" เพื่อค้นหา (เมื่อไม่ได้พิมพ์อยู่ในช่องอื่น)
+document.addEventListener('keydown', (e) => {
+  if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
+  const tag = (document.activeElement?.tagName || '').toLowerCase();
+  if (['input', 'textarea', 'select'].includes(tag) || document.querySelector('dialog[open]')) return;
+  if (parseRoute().view !== 'directory') return;
+  e.preventDefault();
+  $('#search').focus();
+});
 $('[data-search-form]').addEventListener('submit', (e) => { e.preventDefault(); $('#search').blur(); });
 
 /* ================= profile ================= */
@@ -302,8 +390,12 @@ function fillProfile(m) {
   $('#p-tags').innerHTML = tags.map((t) => `<span class="chip">${icon('tag')}&nbsp;${esc(t)}</span>`).join('');
 
   $('#p-id').textContent = m.studentId;
+  $('#p-card-id').textContent = m.studentId;
+  const bc = barcodeSVG(m.studentId, 30);
+  const bcEl = $('#p-barcode');
+  if (bc) { bcEl.setAttribute('viewBox', `0 0 ${bc.w.toFixed(1)} ${bc.h}`); bcEl.setAttribute('preserveAspectRatio', 'none'); bcEl.innerHTML = bc.inner; }
   $('#p-position').textContent = m.position || POS_MEMBER;
-  $('#p-role-led').className = `role-led ${m.position === POS_PRES ? 'pres' : m.position === POS_VP ? 'vp' : ''}`;
+  $('#p-role-led').className = `role-dot ${m.position === POS_PRES ? 'pres' : m.position === POS_VP ? 'vp' : ''}`;
   $('#p-bday').innerHTML = esc(fmtBday(m.birthdate)) + (isBirthday(m.birthdate) ? ` ${icon('cake')}` : '');
 
   const line = (m.lineId || '').trim();
@@ -390,7 +482,7 @@ async function loadPhotoMap() {
     const data = await res.json();
     if (data && data.ok) {
       photoMap = data.photos || {};
-      if (membersLoaded) renderDirectory();
+      if (membersLoaded) { renderDirectory(); renderHero(); }
       if (profileId) fillProfile(byId(profileId));
       renderMe();
       if (!$('#view-memories').hidden) renderMemories();
@@ -518,9 +610,7 @@ function renderMe() {
   $('[data-login-prompt]').hidden = signedIn;
   if (!signedIn) return;
   const me = byId(currentUser.studentId) || { studentId: currentUser.studentId };
-  const av = $('[data-me-avatar]');
-  av.dataset.sid = me.studentId; delete av.dataset.fallback;
-  av.src = photoSrc(me, 96);
+  $$('[data-me-avatar]').forEach((av) => { av.dataset.sid = me.studentId; delete av.dataset.fallback; av.src = photoSrc(me, 96); });
   $('[data-me-name]').textContent = me.nickname || me.firstName || me.studentId;
 }
 
@@ -583,7 +673,7 @@ function renderMemories() {
       <form class="reply-form" id="rf-${esc(mem.id)}" data-reply-form="${esc(mem.id)}" hidden>
         <label class="sr-only" for="ri-${esc(mem.id)}">ข้อความตอบกลับ</label>
         <textarea class="textarea" id="ri-${esc(mem.id)}" maxlength="200" required placeholder="ตอบกลับ..." style="min-height:72px"></textarea>
-        <div class="form-actions"><button class="key key-sm" type="button" data-reply-toggle="${esc(mem.id)}">ยกเลิก</button><button class="key key-sm key-primary" type="submit">${icon('send')}ส่ง</button></div>
+        <div class="form-actions"><button class="btn btn-sm" type="button" data-reply-toggle="${esc(mem.id)}">ยกเลิก</button><button class="btn btn-sm btn-primary" type="submit">${icon('send')}ส่ง</button></div>
       </form>
     </article>`;
   }).join('');
@@ -638,7 +728,7 @@ function renderAdmin() {
     <tr>
       <td><div class="cell-person"><img class="avatar avatar-sm" src="${esc(photoSrc(m, 96))}" alt="" referrerpolicy="no-referrer" data-sid="${esc(m.studentId)}" loading="lazy"><span>${esc(fullName(m))}${m.nickname ? ` <span class="muted">(${esc(m.nickname)})</span>` : ''}</span></div></td>
       <td class="mono">${esc(m.studentId)}</td>
-      <td>${esc(m.position || POS_MEMBER)}</td>
+      <td><span class="pill${isLeader(m) ? ' lead' : ''}">${esc(m.position || POS_MEMBER)}</span></td>
       <td style="text-align:right;white-space:nowrap">
         <button class="icon-btn" type="button" data-open="${esc(m.studentId)}" aria-label="ดูโปรไฟล์ ${esc(fullName(m))}">${icon('eye')}</button>
         <button class="icon-btn" type="button" data-admin-edit="${esc(m.studentId)}" aria-label="แก้ไข ${esc(fullName(m))}">${icon('pencil')}</button>
@@ -730,6 +820,7 @@ document.addEventListener('click', async (e) => {
   if (t.hasAttribute('data-close')) { closeDialog(t.closest('dialog')); return; }
   if (t.dataset.authMode) { setAuthMode(t.dataset.authMode); return; }
   if (t.dataset.adminEdit) { openEdit(t.dataset.adminEdit, 'admin'); return; }
+  if (t.dataset.filter) { activeFilter = t.dataset.filter; renderFilterCounts(); renderDirectory(); return; }
 
   if (t.dataset.replyToggle) {
     const form = $(`[data-reply-form="${CSS.escape(t.dataset.replyToggle)}"]`);
@@ -765,6 +856,22 @@ document.addEventListener('click', async (e) => {
       break;
     case 'open-me': if (currentUser) openProfile(currentUser.studentId); break;
     case 'clear-search': $('#search').value = ''; renderDirectory(); $('#search').focus(); break;
+    case 'reset-filters': $('#search').value = ''; activeFilter = 'all'; renderFilterCounts(); renderDirectory(); break;
+    case 'toggle-faces': {
+      const box = $('[data-faces]');
+      const paused = box.dataset.paused !== 'true';
+      box.dataset.paused = String(paused);
+      t.setAttribute('aria-pressed', String(paused));
+      $('use', t).setAttribute('href', paused ? '#i-play' : '#i-pause');
+      $('span', t).textContent = paused ? 'เล่นภาพเลื่อน' : 'หยุดภาพเลื่อน';
+      break;
+    }
+    case 'copy-link': {
+      if (!profileId) return;
+      const url = `${location.origin}${location.pathname}#/m/${profileId}`;
+      try { await navigator.clipboard.writeText(url); toast('คัดลอกลิงก์โปรไฟล์แล้ว'); } catch (err) { toast('คัดลอกไม่ได้', 'error'); }
+      break;
+    }
     case 'pick-photo': $('#photo-file-input').click(); break;
     case 'edit-self': if (profileId) openEdit(profileId, 'self'); break;
     case 'copy': {
@@ -795,9 +902,9 @@ onSnapshot(collection(db, USERS_PATH), (snap) => {
   snap.forEach((d) => members.push({ ...d.data() }));
   const first = !membersLoaded;
   membersLoaded = true;
-  setSeg($('[data-member-count]'), members.length, 3);
-  $$('[data-directory] .grid').forEach((g) => g.removeAttribute('aria-busy'));
+  renderFilterCounts();
   renderDirectory();
+  if (first || !$('[data-faces]').children.length) renderHero(); else { setStat('members', members.length); setStat('bdays', members.filter(bdayThisMonth).length); }
   renderBirthdays();
   renderMe();
   if (!$('#view-admin').hidden) renderAdmin();
@@ -806,12 +913,13 @@ onSnapshot(collection(db, USERS_PATH), (snap) => {
   else if (first) { const r = parseRoute(); if (r.profile) openProfile(r.profile, false); }
 }, (err) => {
   console.error(err);
-  $('[data-directory]').innerHTML = `<div class="panel empty" style="margin-top:24px">${icon('alert', 'icon')}<strong>โหลดรายชื่อไม่สำเร็จ</strong><span>ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า</span><button class="key key-sm" type="button" onclick="location.reload()">รีเฟรช</button></div>`;
+  $('[data-directory]').innerHTML = `<div class="panel empty" style="margin-top:24px">${icon('alert', 'icon')}<strong>โหลดรายชื่อไม่สำเร็จ</strong><span>ตรวจสอบอินเทอร์เน็ตแล้วรีเฟรชหน้า</span><button class="btn btn-sm" type="button" onclick="location.reload()">รีเฟรช</button></div>`;
 });
 
 onSnapshot(collection(db, MEMORIES_PATH), (snap) => {
   memories = [];
   snap.forEach((d) => memories.push({ id: d.id, ...d.data() }));
+  setStat('posts', memories.length);
   if (!$('#view-memories').hidden) renderMemories();
 });
 
@@ -826,7 +934,7 @@ onSnapshot(collection(db, MEMORIES_PATH), (snap) => {
       try { sessionStorage.setItem('visited_cn25', '1'); } catch (e) {}
     }
   } catch (e) { console.error('Visitor count error', e); }
-  onSnapshot(ref, (d) => { if (d.exists()) setSeg($('[data-visitor-count]'), d.data().count || 0, 6); });
+  onSnapshot(ref, (d) => { if (d.exists()) setStat('visitors', d.data().count || 0); });
 })();
 
 /* refresh relative times every minute */

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t">
+  <title id="t">CN25</title>
+  <defs>
+    <clipPath id="tile"><rect width="64" height="64" rx="15"/></clipPath>
+  </defs>
+  <g clip-path="url(#tile)">
+    <rect width="64" height="64" fill="#A3161F"/>
+    <path d="M0 0h64v28C44 20 20 22 0 30Z" fill="#ffffff" opacity=".07"/>
+    <rect y="45" width="64" height="19" fill="#F2B705"/>
+  </g>
+  <g fill="none" stroke="#ffffff" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M27.6 17.6A9.6 9.6 0 1 0 27.6 31.4"/>
+    <path d="M35 35V14l13 21V14"/>
+  </g>
+  <g fill="none" stroke="#3B2A00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24 49.5h6v4.5h-6v4.5h6"/>
+    <path d="M40.5 49.5h-6V54h6v4.5h-6"/>
+  </g>
+</svg>
