@@ -18,6 +18,27 @@
  *   SITE_ORIGIN       (ไม่บังคับ) เช่น https://cn25.peemcn25.dev ใช้เป็น Referer ตอนตรวจ token
  */
 
+/**
+ * รันครั้งเดียวจาก editor (เลือก setup แล้วกด Run):
+ * สร้างโฟลเดอร์ CN25-photos ที่แชร์แบบ "ทุกคนที่มีลิงก์ดูได้" และตั้ง script properties ที่ยังว่าง
+ * ส่วน FIREBASE_API_KEY ต้องใส่เองใน Project Settings > Script properties
+ */
+function setup() {
+  const props = PropertiesService.getScriptProperties();
+  let folderId = props.getProperty('FOLDER_ID');
+  if (!folderId) {
+    const folder = DriveApp.createFolder('CN25-photos');
+    folder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    folderId = folder.getId();
+    props.setProperty('FOLDER_ID', folderId);
+  }
+  if (!props.getProperty('ADMIN_IDS')) props.setProperty('ADMIN_IDS', '6910616249');
+  if (!props.getProperty('SITE_ORIGIN')) props.setProperty('SITE_ORIGIN', 'https://cn25.peemcn25.dev');
+  Logger.log('FOLDER_ID = ' + folderId);
+  Logger.log('https://drive.google.com/drive/folders/' + folderId);
+  if (!props.getProperty('FIREBASE_API_KEY')) Logger.log('ยังไม่ได้ใส่ FIREBASE_API_KEY');
+}
+
 const CACHE_KEY = 'photo-map-v1';
 const CACHE_SECONDS = 300;
 const MAX_BYTES = 4 * 1024 * 1024;
