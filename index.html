@@ -401,7 +401,7 @@
         <div class="bg-[#e8e8df] w-full max-w-sm md:max-w-md rounded-xl shadow-2xl relative z-10 border-2 border-white p-6 flex flex-col items-center animate-pop max-h-[90vh] overflow-y-auto">
             <button onclick="closeProfile()" class="absolute top-4 right-4 keycap !w-8 !h-8 flex items-center justify-center font-bold text-gray-600 bg-gray-200">X</button>
             
-            <img id="modal-img" src="" alt="Profile" class="w-32 h-40 object-cover border-2 border-[#a3a39b] rounded mb-3 bg-[#d1d1c8] shadow-[inset_0_3px_6px_rgba(0,0,0,0.2)]">
+            <img id="modal-img" src="" alt="Profile" referrerpolicy="no-referrer" class="w-32 h-40 object-cover border-2 border-[#a3a39b] rounded mb-3 bg-[#d1d1c8] shadow-[inset_0_3px_6px_rgba(0,0,0,0.2)]">
 
             <!-- เปลี่ยนรูปโปรไฟล์ (เจ้าของ/แอดมิน) -> เก็บใน Google Drive -->
             <div id="photo-upload-row" class="hidden mb-4">
@@ -1201,7 +1201,7 @@
                     <img src="${esc(photoSrc(member))}"
                          data-sid="${esc(member.studentId)}" data-fname="${esc(member.firstName || '')}"
                          onerror="window.handlePhotoError(this)"
-                         loading="lazy" decoding="async"
+                         loading="lazy" decoding="async" referrerpolicy="no-referrer"
                          alt="${esc(displayName)}"
                          class="profile-img mb-2">
                     <p class="name-text thai-text text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 leading-tight text-center w-full truncate">${esc(displayName)}</p>
