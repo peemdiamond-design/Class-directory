@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot, addDoc, deleteDoc, increment, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { parseBirth, toISODate, planRow } from "./csv-import.js?v=30";
 
 /* ================= config ================= */
 const firebaseConfig = {
@@ -73,9 +74,8 @@ document.addEventListener('load', (e) => {
 }, true);
 
 function parseDate(s) {
-  if (!s) return null;
-  const d = new Date(s);
-  return isNaN(d) ? null : d;
+  const b = parseBirth(s);
+  return b ? new Date(b.y, b.m - 1, b.d) : null;
 }
 const isBirthday = (s) => { const d = parseDate(s); const t = new Date(); return !!d && d.getDate() === t.getDate() && d.getMonth() === t.getMonth(); };
 const fmtBday = (s) => { const d = parseDate(s); return d ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long' }) : '—'; };
@@ -168,13 +168,16 @@ applyThemeIcon();
 // #/memories    memory board
 // #/login       sign in
 // #/admin       admin (admin only)
-// #/m/<id>      profile over directory
+// #/m/<id>      profile over the page it was opened from (history.state.from), else directory
+const viewOf = (hash) => {
+  const seg = String(hash || '').replace(/^#\/?/, '').split('/')[0];
+  return ['memories', 'login', 'admin'].includes(seg) ? seg : 'directory';
+};
 function parseRoute() {
   const h = location.hash.replace(/^#\/?/, '');
   const [seg, arg] = h.split('/');
-  if (seg === 'm' && /^\d{10}$/.test(arg || '')) return { view: 'directory', profile: arg };
-  if (['memories', 'login', 'admin'].includes(seg)) return { view: seg };
-  return { view: 'directory' };
+  if (seg === 'm' && /^\d{10}$/.test(arg || '')) return { view: viewOf(history.state?.from), profile: arg };
+  return { view: viewOf(location.hash) };
 }
 let lastView = null;
 function route() {
@@ -367,14 +370,17 @@ function openProfile(id, push = true) {
   const m = byId(id);
   if (!m) { if (membersLoaded) { toast('ไม่พบสมาชิกรหัสนี้', 'error'); go('#/'); } return; }
   profileId = id;
-  if (push && location.hash !== `#/m/${id}`) { history.pushState(null, '', `#/m/${id}`); }
+  if (push && location.hash !== `#/m/${id}`) { history.pushState({ from: location.hash || '#/' }, '', `#/m/${id}`); }
   fillProfile(m);
   const dlg = $('#dlg-profile');
   if (!dlg.open) { openDialog(dlg); $('.dialog-scroll', dlg).scrollTop = 0; }
 }
 function onProfileClosed() {
   profileId = null;
-  if (/^#\/m\//.test(location.hash)) history.replaceState(null, '', '#/');
+  if (!/^#\/m\//.test(location.hash)) return;
+  // กลับไปหน้าที่เปิดโปรไฟล์มา; ถ้าเข้าจากลิงก์ตรงให้ไปหน้าหลัก
+  if (history.state?.from) history.back();
+  else { history.replaceState(null, '', '#/'); route(); }
 }
 
 function fillProfile(m) {
@@ -455,6 +461,7 @@ function openEdit(id, mode) {
   $('#edit-title').textContent = mode === 'admin' ? `แก้ไขข้อมูล · ${fullName(m)}` : 'แก้ไขข้อมูลส่วนตัว';
   form.studentId.value = m.studentId;
   ['firstName', 'lastName', 'nickname', 'birthdate', 'tags', 'lineId', 'instagram'].forEach((k) => { form[k].value = m[k] || ''; });
+  form.birthdate.value = toISODate(m.birthdate);
   form.position.value = m.position || POS_MEMBER;
   $('[data-admin-field]', form).hidden = mode !== 'admin';
   openDialog($('#dlg-edit'));
@@ -771,30 +778,33 @@ function importCSV(btn) {
   if (!currentUser?.isAdmin) return;
   const input = $('#csv-file');
   if (!input.files.length) { toast('เลือกไฟล์ CSV ก่อน', 'error'); return; }
+  const log = $('[data-csv-log]');
+  log.textContent = '';
   withBusy(btn, 'กำลังนำเข้า', () => new Promise((resolve) => {
     window.Papa.parse(input.files[0], {
       header: true, skipEmptyLines: true,
+      error: () => { toast('อ่านไฟล์ CSV ไม่สำเร็จ', 'error'); resolve(); },
       complete: async ({ data }) => {
-        let added = 0, skipped = 0;
+        let added = 0, filled = 0, skipped = 0, failed = 0;
+        const issues = new Map();
         for (const row of data) {
-          const id = String(row['รหัสนักศึกษา'] || row.studentId || '').trim();
-          if (!/^\d{10}$/.test(id)) { skipped++; continue; }
+          let id = '';
           try {
+            const first = planRow(row, null);
+            id = first.id;
+            if (first.action === 'invalid') { skipped++; continue; }
             const ref = doc(db, USERS_PATH, id);
-            if ((await getDoc(ref)).exists()) { skipped++; continue; }
-            let tags = row['แท็ก'] || row.tags || '';
-            if (row['สายรหัส']) tags += (tags ? ',' : '') + row['สายรหัส'];
-            await setDoc(ref, {
-              studentId: id, firstName: (row['ชื่อ'] || row.name || '').trim(), lastName: (row['นามสกุล'] || '').trim(),
-              nickname: (row['ชื่อเล่น'] || '').trim(), birthdate: (row['วันเกิด'] || row.birthdate || '').trim(), tags,
-              lineId: (row['ID Line'] || '').trim(), instagram: (row['Instagram'] || '').trim(),
-              position: POS_MEMBER, status: '', givenNicknames: {}
-            });
-            added++;
-          } catch (err) { skipped++; }
+            const snap = await getDoc(ref);
+            const plan = snap.exists() ? planRow(row, snap.data()) : first;
+            if (plan.issue) issues.set(id, plan.issue);
+            if (plan.action === 'add') { await setDoc(ref, plan.data); added++; }
+            else if (plan.action === 'birthdate') { await updateDoc(ref, plan.data); filled++; issues.delete(id); }
+            else skipped++;
+          } catch (err) { failed++; issues.set(id || '?', 'บันทึกไม่สำเร็จ'); }
         }
         input.value = '';
-        toast(`นำเข้า ${added} รายการ · ข้าม ${skipped}`);
+        log.textContent = [...issues].map(([k, v]) => `${k}: ${v}`).join('\n');
+        toast(`เพิ่ม ${added} คน · เติมวันเกิด ${filled} · ข้าม ${skipped}${failed ? ` · ไม่สำเร็จ ${failed}` : ''}`, failed ? 'error' : 'ok');
         resolve();
       }
     });
@@ -815,6 +825,15 @@ function randomMember() {
 document.addEventListener('click', async (e) => {
   const t = e.target.closest('button, a');
   if (!t) return;
+
+  const plain = !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey);
+  if (t.classList.contains('skip-link')) { e.preventDefault(); $('#main').focus(); return; }
+  if (t.matches('a[href^="#/"]') && plain) {
+    const href = t.getAttribute('href');
+    const pid = /^#\/m\/(\d{10})$/.exec(href)?.[1];
+    if (pid) { e.preventDefault(); openProfile(pid); return; }
+    if (href === location.hash) route(); // URL เดิมไม่ยิง hashchange จึงวาดหน้าใหม่เอง
+  }
 
   if (t.dataset.open) { e.preventDefault(); openProfile(t.dataset.open); return; }
   if (t.hasAttribute('data-close')) { closeDialog(t.closest('dialog')); return; }

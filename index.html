@@ -313,12 +313,13 @@
           </div>
           <div class="panel admin-card">
             <h2><svg class="icon" aria-hidden="true"><use href="#i-file"/></svg>นำเข้าจาก CSV</h2>
-            <p class="desc">คอลัมน์: รหัสนักศึกษา, ชื่อ, นามสกุล, ชื่อเล่น, วันเกิด, แท็ก, สายรหัส, ID Line, Instagram · ข้ามรหัสที่มีอยู่แล้ว</p>
+            <p class="desc">คอลัมน์: รหัสนักศึกษา, ชื่อ, นามสกุล, ชื่อเล่น, วันเกิด, แท็ก, สายรหัส, ID Line, Instagram · วันเกิดใช้ วัน/เดือน/ปี ได้ทั้ง พ.ศ. และ ค.ศ. · คนที่มีอยู่แล้วจะเติมเฉพาะวันเกิดที่ยังว่าง</p>
             <div class="file-row">
               <label class="sr-only" for="csv-file">เลือกไฟล์ CSV</label>
               <input id="csv-file" type="file" accept=".csv">
               <button class="btn btn-sm" type="button" data-action="import-csv"><svg class="icon icon-sm" aria-hidden="true"><use href="#i-upload"/></svg>นำเข้า</button>
             </div>
+            <p class="log" data-csv-log role="status"></p>
           </div>
         </div>
       </div>
@@ -440,6 +441,6 @@
 
   <div class="toasts" data-toasts role="status" aria-live="polite"></div>
 
-  <script type="module" src="assets/app.js?v=22"></script>
+  <script type="module" src="assets/app.js?v=30"></script>
 </body>
 </html>
